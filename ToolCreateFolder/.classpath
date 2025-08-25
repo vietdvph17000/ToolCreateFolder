@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="lib" path="lib/j2ee.jar"/>
+	<classpathentry kind="lib" path="lib/navigatorAPI.jar"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="WebContent/WEB-INF/lib"/>
+	<classpathentry kind="lib" path="lib/client-download.jar"/>
+	<classpathentry kind="lib" path="lib/integration.jar"/>
+	<classpathentry kind="lib" path="lib/Jace.jar"/>
+	<classpathentry kind="lib" path="lib/javax.activation.jar"/>
+	<classpathentry kind="lib" path="lib/jmimemagic-0.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.14.jar"/>
+	<classpathentry kind="lib" path="lib/p8cel10n.jar"/>
+	<classpathentry kind="lib" path="lib/poi-3.9.jar"/>
+	<classpathentry kind="lib" path="lib/poi-ooxml-3.7.jar"/>
+	<classpathentry kind="lib" path="lib/psclnt.jar"/>
+	<classpathentry kind="lib" path="lib/stax-api.jar"/>
+	<classpathentry kind="lib" path="lib/xlxpScanner.jar"/>
+	<classpathentry kind="lib" path="lib/xlxpScannerUtils.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v9.0">
+		<attributes>
+			<attribute name="owner.project.facets" value="jst.web"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk-1.8">
+		<attributes>
+			<attribute name="module" value="true"/>
+			<attribute name="owner.project.facets" value="java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/jackson-annotations-2.13.3.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-core-2.13.3.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-databind-2.13.3.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

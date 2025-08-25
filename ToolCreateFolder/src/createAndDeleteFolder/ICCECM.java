@@ -1,0 +1,1727 @@
+package createAndDeleteFolder;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.FileNameMap;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+import javax.activation.MimetypesFileTypeMap;
+import javax.security.auth.Subject;
+
+//import org.omg.CORBA.CTX_RESTRICT_SCOPE;
+
+import com.filenet.api.admin.ClassDefinition;
+import com.filenet.api.collection.ContentElementList;
+import com.filenet.api.collection.DocumentSet;
+import com.filenet.api.collection.FolderSet;
+import com.filenet.api.collection.StorageAreaSet;
+import com.filenet.api.collection.StoragePolicySet;
+import com.filenet.api.constants.AutoClassify;
+import com.filenet.api.constants.AutoUniqueName;
+import com.filenet.api.constants.CheckinType;
+import com.filenet.api.constants.DefineSecurityParentage;
+import com.filenet.api.constants.RefreshMode;
+import com.filenet.api.core.Annotation;
+import com.filenet.api.core.Connection;
+import com.filenet.api.core.ContentElement;
+import com.filenet.api.core.ContentReference;
+import com.filenet.api.core.ContentTransfer;
+import com.filenet.api.core.Document;
+import com.filenet.api.core.Domain;
+import com.filenet.api.core.Factory;
+import com.filenet.api.core.Factory.FileStorageArea;
+import com.filenet.api.core.Factory.StorageArea;
+import com.filenet.api.core.Factory.StoragePolicy;
+import com.filenet.api.core.Folder;
+import com.filenet.api.core.ObjectStore;
+import com.filenet.api.core.ReferentialContainmentRelationship;
+import com.filenet.api.query.SearchSQL;
+import com.filenet.api.query.SearchScope;
+import com.filenet.api.util.Id;
+import com.filenet.api.util.UserContext;
+import com.filenet.apiimpl.core.StorageAreaImpl;
+import com.filenet.apiimpl.core.StoragePolicyImpl;
+
+public class ICCECM {
+
+//	//hddt test
+//	private String ecmDocClass = "ASCDocument";
+//	private String ecmURI = "http://10.0.139.2:9080/wsi/FNCEWS40MTOM";
+//	private String ecmUsername = "ecmad";
+//	private String ecmPassword = "ecmad12345";
+//	private String ecmDomain = "hddt_domain";
+//	private String ecmFolder = "/ASCFOLDER";
+//	private String ecmObjectStoreName = "hddt_store";
+//	private String ecmQueryClause = "Id,MimeType,Name,DocumentTitle,CurrentState,IsCurrentVersion,MajorVersionNumber,MinorVersionNumber,DateCreated,DateLastModified,ContentSize,Creator,DonVi,LoaiHSo,MaUD,PbanHDon,TenHDon,MauHDon,KHieuHDon,SoHDon,NgayHDon,TThaiHDon,MoTaBMau,ContentElements";
+	
+//cty etax
+//	private String ecmDocClass = "ASCDocument";
+//	private String ecmURI = "http://192.168.10.22:9081/wsi/FNCEWS40MTOM";
+//	private String ecmUsername = "ecmadmin";
+//	private String ecmPassword = "bpm123";
+//	private String ecmDomain = "tct_domain";
+//	private String ecmFolder = "/ASCFOLDER";
+//	private String ecmObjectStoreName = "tct_store";
+//	private String ecmQueryClause = "Id,MimeType,Name,DocumentTitle,CurrentState,IsCurrentVersion,MajorVersionNumber,MinorVersionNumber,DateCreated,DateLastModified,ContentSize,Creator,TenTL,NgayTao,NguoiTao,DonVi,VersionTL,IDTL ";
+
+//cty 22
+	private String ecmDocClass = "ASCDocument";
+	private String ecmURI = "http://192.168.1.188:9081/wsi/FNCEWS40MTOM";
+	private String ecmUsername = "ecmadmin";
+	private String ecmPassword = "bpm123";
+	private String ecmDomain = "tct_domain";
+	private String ecmFolder = "/ASCFOLDER";
+	private String ecmObjectStoreName = "tct_store";
+	private String ecmQueryClause = "Id,MimeType,Name,DocumentTitle,CurrentState,IsCurrentVersion,MajorVersionNumber,MinorVersionNumber,DateCreated,DateLastModified,ContentSize,Creator,TenTL,NgayTao,NguoiTao,DonVi,VersionTL,IDTL ";
+
+	
+	private ArrayList<String> storageAreaList = new ArrayList<String>();
+	private ArrayList<String> storagePolicyList = new ArrayList<String>();
+
+	public static class DocClass {
+		
+		public static class HDON_DTU {
+			public static final String HDDT = "HDDT";
+		}
+	}
+
+	public static class DocFolder {	
+	}
+
+	public static class QueryClause {
+
+		public static class HDON_DTU {
+			private static final String HDDT = "Id,MimeType,Name,DocumentTitle,CurrentState,IsCurrentVersion,MajorVersionNumber,MinorVersionNumber,DateCreated,DateLastModified,ContentSize,Creator,DonVi,LoaiHSo,MaUD,PbanHDon,TenHDon,MauHDon,KHieuHDon,SoHDon,NgayHDon,TThaiHDon,MoTaBMau,ContentElements";
+		}
+		
+	}
+
+	public ICCECM() {
+	}
+
+	public ICCECM(String docClass, String docFolder, String metadataSearch) {
+		setEcmDocClass(docClass);
+		setEcmFolder(docFolder);
+		setEcmQueryClause(metadataSearch);
+	}
+	
+
+	public static void main(String[] args) throws Exception {
+
+		ICCECM p8 = new ICCECM();
+		// 1.Put tai lieu vao ECM
+
+//		 Path path = Paths.get("D:/hoannc/Project/ICS_ Hoa don dien tu/XSD/XSD_2407/e01GTKT.xml");
+//		 byte[] data = Files.readAllBytes(path);
+//		
+//		 System.out.println("Put tai lieu vao ECM ");
+//		 HashMap<String, String> putDocHashMapKey = new HashMap<String,String>();
+//		 putDocHashMapKey.put("DocumentTitle", "testHDDT.xml");
+//		 putDocHashMapKey.put("DonVi", "10100");
+//		 putDocHashMapKey.put("LoaiHSo", HOA_DON_DIEN_TU.GTKT);
+//		// putDocHashMapKey.put("MST", "123456");
+//		// p8.setEcmDocClass(DocClass.ETAX.DANG_KY);
+//		// String retDocumentID = p8.putDocFileStorage(putDocHashMapKey, data, "ecm_object_store", "ecm_object_store_sp");
+//		 SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
+//		 String sDate = sdf.format(new Date());
+//		 p8.setEcmDocClass(DocClass.HDON_DTU.HDDT);
+//		 String retDocumentID = p8.putDocument(putDocHashMapKey, sDate , data);
+//		 System.out.println(retDocumentID);
+//		//
+//		 System.out.println("================================== ");
+		// String docDelId = null;
+		//
+		//// 2.Search danh sach tai lieu co MaNNT=12345
+		// System.out.println("Search danh sach tai lieu");
+		// HashMap<String, String>searchDocHashMapKey = new
+		// HashMap<String,String>();
+		//// searchDocHashMapKey.put("DocumentTitle", "file");
+		//// searchDocHashMapKey.put("NgaySuaTuNgay", "02/04/2016");
+		//// searchDocHashMapKey.put("NgaySuaDenNgay", "05/04/2016");
+		// //hoac tim theo ID
+		// searchDocHashMapKey.put("ID",
+		// "{B09D7A57-0000-C915-BDB3-783EEAA54860}");
+		// ArrayList<String> arrKeys=p8.searchDocumentKeys(searchDocHashMapKey);
+		//// ArrayList<String>
+		// arrKeys=p8.searchAllVersionDocumentKeys(searchDocHashMapKey);
+		////
+		// for (int i=0;i<arrKeys.size();i++)
+		// {
+		// System.out.println("File ID:"+arrKeys.get(i)
+		// .toString());
+		// }
+		// System.out.println("================================== ");
+
+		// ----------------- Search all document by class Document
+		// --------------------
+		// System.out.println("Search danh sach tai lieu");
+		// ArrayList<String> arrKeys = p8.searchAllDocumentIDByClass();
+		//
+		// for (int i = 0; i < arrKeys.size(); i++) {
+		// System.out.println("File ID:" + arrKeys.get(i)
+		// .toString());
+		//
+		// }
+		// System.out.println("================================== ");
+
+		// 3.Get Metadata cua tai lieu
+		// System.out.println("Get Metadata cua tai lieu ");
+		// HashMap<String, String> metaDocHashMapKey =
+		// p8.getDocumentMetaData("{40995154-0000-CB11-B01C-797E39B345A1}");
+		// for (String key : metaDocHashMapKey.keySet()) {
+		// System.out.println(key + ":" + metaDocHashMapKey.get(key));
+		// }
+		// System.out.println("================================== ");
+		//
+		// 4.Get tai lieu
+//		 System.out.println("Get tai lieu");
+//		 byte[] docBytes =
+//		 p8.getDocumentContent("{40D9785D-0000-C71E-A918-547F71BEC419}");
+//		 // Ghi ra file
+//		 if (docBytes != null) {
+//		 System.out.print("");
+//		 FileOutputStream fos = new FileOutputStream("e:\\replace3333.xml");
+//		 fos.write(docBytes);
+//		 fos.close();
+//		 }
+//		 System.out.println("================================== ");
+		// 5.Replace tai lieu
+		// File file = new File("D:\\change.xml");
+		// System.out.println(p8.addVersion("{B0F24C54-0000-C414-94E8-7455D5AF2F7A}",
+		// file, true));
+		// // 6.Delete tai lieu
+		// // ---Del by Id
+		// String docDelId = "{60B57A57-0000-CE1C-8299-D2DA96EA7E93}";
+		// p8.deleteDocById(docDelId);
+		// ---Del by properties
+		// HashMap<String, String>delMap = new HashMap<String, String>();
+		// delMap.put("DocumentTitle", "3.pdf");
+		// delMap.put("MaNNT", "12345");
+		// p8.deleteDocByProperties(delMap);
+		// 7.Them phien ban cho tai lieu
+	}
+	
+	//Create Document Define
+	public String createDocClassDefine(String className){
+		ObjectStore os = this.getObjectStore();
+		ClassDefinition objClassDefCO = Factory.ClassDefinition.fetchInstance(os, "Document", null);
+		ClassDefinition classDef = Factory.ClassDefinition.fetchInstance(os, className, null );
+		return null;
+	}
+
+	private byte[] getBytes(InputStream is) throws IOException {
+
+		int len;
+		int size = 1024;
+		byte[] buf;
+
+		if (is instanceof ByteArrayInputStream) {
+			size = is.available();
+			buf = new byte[size];
+			len = is.read(buf, 0, size);
+		} else {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			buf = new byte[size];
+			while ((len = is.read(buf, 0, size)) != -1) {
+				bos.write(buf, 0, len);
+			}
+			buf = bos.toByteArray();
+		}
+		return buf;
+	}
+
+	private DocumentSet searchDocuments(HashMap<String, String> arrSearchFields) {
+		ObjectStore os = getObjectStore();
+		SearchScope search = new SearchScope(os);
+		SearchSQL sql = new SearchSQL();
+		sql.setSelectList(ecmQueryClause);
+		sql.setFromClauseInitialValue(ecmDocClass, "d", true);
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		String whereClause = "";
+		for (String key : arrSearchFields.keySet()) {
+			whereClause += key + "='" + arrSearchFields.get(key) + "'";
+			whereClause += " AND ";
+		}
+		whereClause += "IsCurrentVersion = true";
+		whereClause += " AND ";
+		sql.setWhereClause(whereClause.substring(0, whereClause.lastIndexOf(" AND ")));
+		DocumentSet documents = (DocumentSet) search.fetchObjects(sql, new Integer(50), null, Boolean.valueOf(true));
+		return documents;
+	}
+
+	private DocumentSet searchDocumentForDelete(HashMap<String, String> arrSearchFields) {
+		ObjectStore os = getObjectStore();
+		SearchScope search = new SearchScope(os);
+		SearchSQL sql = new SearchSQL();
+		sql.setSelectList(ecmQueryClause);
+		sql.setFromClauseInitialValue(ecmDocClass, "d", true);
+		String whereClause = "";
+		for (String key : arrSearchFields.keySet()) {
+			whereClause += key + "='" + arrSearchFields.get(key) + "'";
+			whereClause += " AND ";
+		}
+
+		sql.setWhereClause(whereClause.substring(0, whereClause.lastIndexOf(" AND ")));
+		DocumentSet documents = (DocumentSet) search.fetchObjects(sql, new Integer(50), null, Boolean.valueOf(true));
+		return documents;
+	}
+
+	private DocumentSet searchAllVersionDocuments(HashMap<String, String> arrSearchFields) {
+		ObjectStore os = getObjectStore();
+		SearchScope search = new SearchScope(os);
+		SearchSQL sql = new SearchSQL();
+		SearchSQL sqlSeries = new SearchSQL();
+		sql.setSelectList(ecmQueryClause);
+		sql.setFromClauseInitialValue(ecmDocClass, "d", true);
+		sqlSeries.setSelectList(ecmQueryClause);
+		sqlSeries.setFromClauseInitialValue(ecmDocClass, "d", true);
+		String whereClause = "";
+		String whereClauseSeries = "";
+		int countId = 0;
+		for (String key : arrSearchFields.keySet()) {
+			if (key.toLowerCase().equals("id")) {
+				countId++;
+			}
+			whereClause += key + "='" + arrSearchFields.get(key) + "'";
+			whereClause += " AND ";
+		}
+
+		DocumentSet documents = null;
+		if (countId == 0) {
+			sql.setWhereClause(whereClause.substring(0, whereClause.lastIndexOf(" AND ")));
+			documents = (DocumentSet) search.fetchObjects(sql, new Integer(50), null, Boolean.valueOf(true));
+		} else {
+			whereClause = "Id = " + arrSearchFields.get("ID");
+			sql.setWhereClause(whereClause);
+			documents = (DocumentSet) search.fetchObjects(sql, new Integer(50), null, Boolean.valueOf(true));
+			Iterator it = documents.iterator();
+			String IDTaiLieuVersionGoc = "";
+			while (it.hasNext()) {
+				Document document = (Document) it.next();
+				IDTaiLieuVersionGoc = document.getProperties().getStringValue("IDTaiLieuVersionGoc");
+			}
+			for (String key : arrSearchFields.keySet()) {
+				if (key.toLowerCase().equals("id")) {
+					countId++;
+				}
+			}
+
+			sqlSeries.setWhereClause(whereClauseSeries);
+			documents = (DocumentSet) search.fetchObjects(sqlSeries, new Integer(50), null, Boolean.valueOf(true));
+		}
+		return documents;
+	}
+
+	private ObjectStore getObjectStore() {
+		Connection conn = Factory.Connection.getConnection(ecmURI);
+		Subject subject = UserContext.createSubject(conn, ecmUsername, ecmPassword, "FileNetP8WSI");
+		UserContext uc = UserContext.get();
+		uc.pushSubject(subject);
+		Domain domain = Factory.Domain.fetchInstance(conn, ecmDomain, null);
+		ObjectStore store = Factory.ObjectStore.fetchInstance(domain, ecmObjectStoreName, null);
+		return store;
+	}
+
+	public ArrayList<String> areaSetName() {
+		ObjectStore store = getObjectStore();
+		StorageAreaSet sas = store.get_StorageAreas();
+		Iterator it = sas.iterator();
+		ArrayList<String> areaList = new ArrayList<String>();
+		while (it.hasNext()) {
+			com.filenet.api.admin.StorageArea sa = (com.filenet.api.admin.StorageArea) it.next();
+			areaList.add(sa.get_DisplayName());
+		}
+		return areaList;
+	}
+
+	public com.filenet.api.admin.StorageArea getStorageAreaSelected(String displayName) {
+		if (displayName == null || "".equals(displayName.trim())) {
+			System.out.println("**** Không truyền tham số StoragePolicy ****");
+			return null;
+		} else {
+			ObjectStore store = getObjectStore();
+			StorageAreaSet sas = store.get_StorageAreas();
+			Iterator it = sas.iterator();
+			com.filenet.api.admin.StorageArea saReturn = null;
+			while (it.hasNext()) {
+				com.filenet.api.admin.StorageArea sa = (com.filenet.api.admin.StorageArea) it.next();
+				if (sa.get_DisplayName().equalsIgnoreCase(displayName)) {
+					saReturn = sa;
+				}
+			}
+			if (saReturn != null) {
+				return saReturn;
+			} else {
+				return null;
+			}
+		}
+	}
+
+	public ArrayList<String> policySetName() {
+		ObjectStore store = getObjectStore();
+		StoragePolicySet sps = store.get_StoragePolicies();
+		Iterator it = sps.iterator();
+		ArrayList<String> policyList = new ArrayList<String>();
+		while (it.hasNext()) {
+			com.filenet.api.admin.StoragePolicy sp = (com.filenet.api.admin.StoragePolicy) it.next();
+			policyList.add(sp.get_DisplayName());
+		}
+		return policyList;
+	}
+
+	public com.filenet.api.admin.StoragePolicy getStoragePolicySelected(String displayName) {
+		if (displayName == null || "".equals(displayName.trim())) {
+			System.out.println("**** Không truyền tham số StoragePolicy ****");
+			return null;
+		} else {
+			ObjectStore store = getObjectStore();
+			StoragePolicySet sps = store.get_StoragePolicies();
+			Iterator it = sps.iterator();
+			com.filenet.api.admin.StoragePolicy spReturn = null;
+			while (it.hasNext()) {
+				com.filenet.api.admin.StoragePolicy sp = (com.filenet.api.admin.StoragePolicy) it.next();
+				if (sp.get_DisplayName().equalsIgnoreCase(displayName)) {
+					spReturn = sp;
+				}
+			}
+			if (spReturn != null) {
+				return spReturn;
+			} else {
+				return null;
+			}
+		}
+	}
+	
+	private String getFolderICC(String maCQT, String loaiHS, String sDate) throws Exception{
+		String sDir = "";
+		sDir += "/"+TCT;
+		for(String key : CQT.CQT_MAP.keySet()){
+			if(key.equalsIgnoreCase(maCQT)){
+				sDir += "/" + CQT.CQT_MAP.get(key);
+				break;
+			}
+		}
+		sDir += "/" + loaiHS + "/" + sDate;
+		
+		return sDir;
+	}
+
+	public String putDocument(HashMap<String, String> arrDocumentProperties, String sDate, byte[] documentContent) throws Exception {
+
+		ObjectStore os = getObjectStore();
+		String docClass = ecmDocClass;
+		String ecmFolderPath = getFolderICC(arrDocumentProperties.get("DonVi"), arrDocumentProperties.get("LoaiHSo"), sDate);
+		String docName = arrDocumentProperties.get("DocumentTitle");
+		
+		Document doc;
+		// 1.Them tai lieu document
+		doc = Factory.Document.createInstance(os, docClass);
+		for (String key : arrDocumentProperties.keySet()) {
+			doc.getProperties().putValue(key, arrDocumentProperties.get(key));
+		}
+
+		ContentElementList cel = null;
+		ContentTransfer ctNew = null;
+		if (documentContent != null) {
+			ctNew = Factory.ContentTransfer.createInstance();
+			ByteArrayInputStream is = new ByteArrayInputStream(documentContent);
+			ctNew.setCaptureSource(is);
+			ctNew.set_RetrievalName(docName);
+		}
+		if (ctNew != null) {
+			cel = Factory.ContentElement.createList();
+			cel.add(ctNew);
+		}
+		if (cel != null) {
+			doc.set_ContentElements(cel);
+		}
+		doc.save(RefreshMode.REFRESH);
+
+		// 2.Dua tai lieu vao folder : ecmFolderPath
+		ReferentialContainmentRelationship rcr = null;
+		Folder fo = Factory.Folder.fetchInstance(os, ecmFolderPath, null);
+		if (doc instanceof Document) {
+			rcr = fo.file((Document) doc, AutoUniqueName.AUTO_UNIQUE, ((Document) doc).get_Name(),
+					DefineSecurityParentage.DO_NOT_DEFINE_SECURITY_PARENTAGE);
+		}
+		rcr.save(RefreshMode.REFRESH);
+
+		// 3.Check-in tai lieu
+		doc.checkin(AutoClassify.AUTO_CLASSIFY, CheckinType.MINOR_VERSION);
+		doc.save(RefreshMode.REFRESH);
+		doc.refresh();
+
+		return doc.get_Id().toString();
+	}
+
+	public ArrayList<String> searchDocumentKeys(HashMap<String, String> arrSearchFields) throws Exception {
+		if (arrSearchFields.size() == 0) {
+			System.out.println("**** Không truyền tham số tìm kiếm ****");
+			return null;
+		} else {
+			DocumentSet documents = searchDocuments(arrSearchFields);
+			Iterator it = documents.iterator();
+			ArrayList<String> arrOfKeys = new ArrayList<String>();
+			while (it.hasNext()) {
+				Document document = (Document) it.next();
+				arrOfKeys.add(document.get_Id().toString());
+			}
+			return arrOfKeys;
+		}
+	}
+
+	public ArrayList<String> searchAllDocumentIDByClass() throws Exception {
+		ObjectStore os = getObjectStore();
+		SearchScope search = new SearchScope(os);
+		SearchSQL sql = new SearchSQL();
+		sql.setSelectList(ecmQueryClause);
+		sql.setFromClauseInitialValue(ecmDocClass, "d", true);
+		DocumentSet documents = (DocumentSet) search.fetchObjects(sql, new Integer(50), null, Boolean.valueOf(true));
+		Iterator it = documents.iterator();
+		ArrayList<String> arrOfKeys = new ArrayList<String>();
+		while (it.hasNext()) {
+			Document document = (Document) it.next();
+			arrOfKeys.add(document.get_Id().toString());
+		}
+		return arrOfKeys;
+	}
+
+	public String updateMetadataDocument(Document doc, HashMap<String, String> arrFieldsVal) throws Exception {
+		if (arrFieldsVal.size() == 0) {
+			System.out.println("**** Không truyền thuộc tính và giá trị update ****");
+			return null;
+		} else {
+			for (String key : arrFieldsVal.keySet()) {
+				String classProperty = doc.getProperties().get(key).getClass().toString();
+				doc.getProperties().putValue(key, arrFieldsVal.get(key));
+			}
+			doc.save(RefreshMode.REFRESH);
+		}
+		return doc.get_Id().toString();
+	}
+
+	public HashMap<String, String> getDocumentMetaData(String documentID) throws Exception {
+		if (documentID == null) {
+			System.out.println("**** Không truyền tham số tìm kiếm ****");
+			return null;
+		} else {
+			HashMap<String, String> hashMapKey = new HashMap<String, String>();
+			hashMapKey.put("Id", documentID);
+			DocumentSet documents = searchDocumentForDelete(hashMapKey);
+			Iterator it = documents.iterator();
+			HashMap hm = new HashMap();
+			if (it.hasNext()) {
+				Document document = (Document) it.next();
+				SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+				for (int i = 0; i < document.getProperties().toArray().length; i++) {
+					hm.put(document.getProperties().toArray()[i].getPropertyName(), propertyValue(document, i));
+				}
+			}
+			return hm;
+		}
+	}
+
+	private String propertyValue(Document document, int i) {
+		String strReturn = "";
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+		String type = document.getProperties().toArray()[i].getClass().toString();
+		if (type.contains("String")) {
+			strReturn = document.getProperties().toArray()[i].getStringValue();
+		}
+		if (type.contains("Boolean")) {
+			strReturn = document.getProperties().toArray()[i].getBooleanValue() == true ? "1" : "0";
+		}
+		if (type.contains("Date")) {
+			strReturn = sdf.format(document.getProperties().toArray()[i].getDateTimeValue());
+		}
+		if (type.contains("Object")) {
+			strReturn = "Object type, không return giá trị String của thuộc tính này";
+		}
+		if (type.contains("Float64")) {
+			strReturn = String.valueOf(document.getProperties().toArray()[i].getFloat64Value());
+		}
+		if (type.contains("Id")) {
+			strReturn = document.getProperties().toArray()[i].getIdValue().toString();
+		}
+		if (type.contains("Stream")) {
+			strReturn = "Stream type, không return giá trị String của thuộc tính này";
+		}
+		if (type.contains("Integer32")) {
+			strReturn = String.valueOf(document.getProperties().toArray()[i].getInteger32Value());
+		}
+		if (strReturn == null) {
+			strReturn = "";
+		}
+		return strReturn;
+	}
+	
+	public String getFileExtension(String fileName) throws Exception {
+		if (fileName == null || "".equals(fileName))
+			return "";
+		int i = fileName.lastIndexOf('.');
+		if (i > 0 && i < fileName.length() - 1) {
+		    return fileName.substring(i+1);
+		} else
+			return "";
+	}	
+	
+	public HashMap<String, Object> getDocNameAndByte(String documentID) throws Exception {
+		if(documentID == null){
+			System.out.println("**** Không truyền tham số tìm kiếm ****");
+			return null;
+		}else{
+		Document document = null;
+		HashMap<String, String> hashMapKey = new HashMap<String, String>();
+		hashMapKey.put("Id", documentID);
+		DocumentSet documents = searchDocumentForDelete(hashMapKey);
+		Iterator it = documents.iterator();
+		HashMap<String, Object> hashMapResult = new HashMap<String, Object>();
+		byte[] retBytes = null;
+		String fileName = null;
+		if (it.hasNext()) {
+			document = (Document) it.next();
+			ContentElementList contents = document.get_ContentElements();
+			fileName = getFileExtension(document.get_Name());
+			ContentElement content;
+			Iterator itContent = contents.iterator();
+			if (itContent.hasNext()) {
+				content = (ContentElement) itContent.next();
+				InputStream inputStream = ((ContentTransfer) content)
+						.accessContentStream();
+				retBytes = getBytes(inputStream);
+			}
+		}
+		
+		hashMapResult.put("DocContent", retBytes);
+		hashMapResult.put("DocName", fileName);
+		
+		return hashMapResult;
+		}
+	}
+
+	public byte[] getDocumentContent(String documentID) throws Exception {
+		if (documentID == null) {
+			System.out.println("**** Không truyền tham số tìm kiếm ****");
+			return null;
+		} else {
+			Document document = null;
+			HashMap<String, String> hashMapKey = new HashMap<String, String>();
+			hashMapKey.put("Id", documentID);
+			DocumentSet documents = searchDocumentForDelete(hashMapKey);
+			Iterator it = documents.iterator();
+			byte[] retBytes = null;
+			if (it.hasNext()) {
+				document = (Document) it.next();
+				ContentElementList contents = document.get_ContentElements();
+				ContentElement content;
+				Iterator itContent = contents.iterator();
+				if (itContent.hasNext()) {
+					content = (ContentElement) itContent.next();
+					InputStream inputStream = ((ContentTransfer) content).accessContentStream();
+					retBytes = getBytes(inputStream);
+				}
+			}
+			return retBytes;
+		}
+	}
+	
+	public String getDocumentNameContent(String documentID) throws Exception {
+		if(documentID == null){
+			System.out.println("**** Không truyền tham số tìm kiếm ****");
+			return null;
+		}else{
+		Document document = null;
+		HashMap<String, String> hashMapKey = new HashMap<String, String>();
+		hashMapKey.put("Id", documentID);
+		DocumentSet documents = searchDocumentForDelete(hashMapKey);
+		Iterator it = documents.iterator();
+		String retrievalName = null;
+		if (it.hasNext()) {
+			document = (Document) it.next();
+			ContentElementList contents = document.get_ContentElements();
+			ContentElement content;
+			Iterator itContent = contents.iterator();
+			if (itContent.hasNext()) {
+				content = (ContentElement) itContent.next();
+				retrievalName = content.getProperties().get("DocumentTitle").toString();
+				retrievalName = retrievalName.substring(retrievalName.indexOf("Value")+6,retrievalName.indexOf("IsDirty")-1);
+			}
+		}
+		return retrievalName;
+		}
+	}
+
+
+
+	public void deleteDocById(String documentID) throws Exception {
+		if (documentID == null) {
+			System.out.println("**** Không truyền tham số delete ****");
+		} else {
+			Document document = null;
+			HashMap<String, String> hashMapKey = new HashMap<String, String>();
+			hashMapKey.put("Id", documentID);
+			DocumentSet documents = searchDocumentForDelete(hashMapKey);
+			Iterator it = documents.iterator();
+			if (it.hasNext()) {
+				document = (Document) it.next();
+				document.delete();
+				document.save(RefreshMode.NO_REFRESH);
+				System.out.println("Delete document has ID: " + documentID);
+			}
+		}
+	}
+
+	public void deleteDocByProperties(HashMap<String, String> hashMapKey) throws Exception {
+		if (hashMapKey.size() == 0) {
+			System.out.println("**** Không truyền tham số delete ****");
+		} else {
+			ArrayList<String> listDocId = this.searchDocumentKeys(hashMapKey);
+			if (listDocId != null) {
+				for (int i = 0; i < listDocId.size(); i++) {
+					deleteDocById(listDocId.get(i));
+				}
+			}
+		}
+	}
+
+	public String updateVersion(String documentID, File file, boolean version) throws Exception {
+		if (documentID == null || file == null) {
+			System.out.println("**** Thiếu tham số ****");
+			return null;
+		} else {
+			Document document = null;
+			Document newDoc = null;
+			HashMap<String, String> hashMapKey = new HashMap<String, String>();
+			hashMapKey.put("Id", documentID);
+			DocumentSet documents = searchDocuments(hashMapKey);
+
+			Iterator it = documents.iterator();
+			if (it.hasNext()) {
+				document = (Document) it.next();
+				String oldId = document.get_Id().toString();
+				document.checkout(com.filenet.api.constants.ReservationType.EXCLUSIVE, null, null, null);
+				document.save(RefreshMode.REFRESH);
+				newDoc = (Document) document.get_Reservation();
+
+				ContentElementList contentElements = Factory.ContentElement.createList();
+				ContentTransfer ctObject = Factory.ContentTransfer.createInstance();
+				ctObject.setCaptureSource(new FileInputStream(file));
+				ctObject.set_RetrievalName(file.getName());
+				FileNameMap fileNameMap = URLConnection.getFileNameMap();
+				ctObject.set_ContentType(fileNameMap.getContentTypeFor(file.getName()));
+				contentElements.add(ctObject);
+				newDoc.set_ContentElements(contentElements);
+				if (version) {
+					newDoc.checkin(AutoClassify.DO_NOT_AUTO_CLASSIFY, CheckinType.MINOR_VERSION);
+				} else {
+					newDoc.checkin(AutoClassify.DO_NOT_AUTO_CLASSIFY, CheckinType.MAJOR_VERSION);
+				}
+				newDoc.save(RefreshMode.NO_REFRESH);
+				deleteDocById(oldId);
+			} else {
+				System.out.println("Tai lieu khong phai la phien ban hien hanh");
+			}
+			if (newDoc != null) {
+				return newDoc.get_Id().toString();
+			} else {
+				return null;
+			}
+		}
+	}
+
+	public String addVersion(String documentID, File file, boolean version) throws Exception {
+		if (documentID == null || file == null) {
+			System.out.println("**** Thiếu tham số ****");
+			return null;
+		} else {
+			Document document = null;
+			Document newDoc = null;
+			HashMap<String, String> hashMapKey = new HashMap<String, String>();
+			hashMapKey.put("Id", documentID);
+			DocumentSet documents = searchDocuments(hashMapKey);
+			Iterator it = documents.iterator();
+			if (it.hasNext()) {
+				document = (Document) it.next();
+				String oldId = document.get_Id().toString();
+				document.checkout(com.filenet.api.constants.ReservationType.EXCLUSIVE, null, null, null);
+				document.save(RefreshMode.REFRESH);
+				newDoc = (Document) document.get_Reservation();
+
+				ContentElementList contentElements = Factory.ContentElement.createList();
+				ContentTransfer ctObject = Factory.ContentTransfer.createInstance();
+				ctObject.setCaptureSource(new FileInputStream(file));
+				ctObject.set_RetrievalName(file.getName());
+				FileNameMap fileNameMap = URLConnection.getFileNameMap();
+				ctObject.set_ContentType(fileNameMap.getContentTypeFor(file.getName()));
+				contentElements.add(ctObject);
+				newDoc.set_ContentElements(contentElements);
+				if (version) {
+					newDoc.checkin(AutoClassify.DO_NOT_AUTO_CLASSIFY, CheckinType.MINOR_VERSION);
+				} else {
+					newDoc.checkin(AutoClassify.DO_NOT_AUTO_CLASSIFY, CheckinType.MAJOR_VERSION);
+				}
+				newDoc.save(RefreshMode.NO_REFRESH);
+			} else {
+				System.out.println("Tai lieu khong phai la phien ban hien hanh");
+			}
+			if (newDoc != null) {
+				return newDoc.get_Id().toString();
+			} else {
+				return null;
+			}
+		}
+	}
+
+	public String addVersion(String documentID, byte[] fileData, boolean version) throws Exception {
+		if (documentID == null || fileData == null) {
+			System.out.println("**** Thiếu tham số ****");
+			return null;
+		} else {
+			Document document = null;
+			Document newDoc = null;
+			HashMap<String, String> hashMapKey = new HashMap<String, String>();
+			hashMapKey.put("Id", documentID);
+			DocumentSet documents = searchDocuments(hashMapKey);
+			Iterator it = documents.iterator();
+			if (it.hasNext()) {
+				document = (Document) it.next();
+				String oldId = document.get_Id().toString();
+
+				document.checkout(com.filenet.api.constants.ReservationType.EXCLUSIVE, null, null, null);
+				document.save(RefreshMode.REFRESH);
+				newDoc = (Document) document.get_Reservation();
+
+				ContentElementList contentElements = Factory.ContentElement.createList();
+				ContentTransfer ctObject = Factory.ContentTransfer.createInstance();
+				ctObject.setCaptureSource(new ByteArrayInputStream(fileData));
+				contentElements.add(ctObject);
+				newDoc.set_ContentElements(contentElements);
+				if (version) {
+					newDoc.checkin(AutoClassify.DO_NOT_AUTO_CLASSIFY, CheckinType.MINOR_VERSION);
+				} else {
+					newDoc.checkin(AutoClassify.DO_NOT_AUTO_CLASSIFY, CheckinType.MAJOR_VERSION);
+				}
+				newDoc.save(RefreshMode.NO_REFRESH);
+			} else {
+				System.out.println("Tai lieu khong phai la phien ban hien hanh");
+			}
+			if (newDoc != null) {
+				return newDoc.get_Id().toString();
+			} else {
+				return null;
+			}
+		}
+	}
+
+	private String greaterDate(String strDate) {
+		return strDate.substring(6, 10) + strDate.substring(3, 5) + strDate.substring(0, 2) + "T000000Z";
+	}
+
+	private String lessDate(String strDate) {
+		return strDate.substring(6, 10) + strDate.substring(3, 5) + strDate.substring(0, 2) + "T235959Z";
+	}
+
+	public String getEcmDocClass() {
+		return ecmDocClass;
+	}
+
+	public void setEcmDocClass(String ecmDocClass) {
+		this.ecmDocClass = ecmDocClass;
+	}
+
+	public String getEcmURI() {
+		return ecmURI;
+	}
+
+	public void setEcmURI(String ecmURI) {
+		this.ecmURI = ecmURI;
+	}
+
+	public String getEcmUsername() {
+		return ecmUsername;
+	}
+
+	public void setEcmUsername(String ecmUsername) {
+		this.ecmUsername = ecmUsername;
+	}
+
+	public String getEcmPassword() {
+		return ecmPassword;
+	}
+
+	public void setEcmPassword(String ecmPassword) {
+		this.ecmPassword = ecmPassword;
+	}
+
+	public String getEcmDomain() {
+		return ecmDomain;
+	}
+
+	public void setEcmDomain(String ecmDomain) {
+		this.ecmDomain = ecmDomain;
+	}
+
+	public String getEcmFolder() {
+		return ecmFolder;
+	}
+
+	public void setEcmFolder(String ecmFolder) {
+		this.ecmFolder = ecmFolder;
+	}
+
+	public String getEcmObjectStoreName() {
+		return ecmObjectStoreName;
+	}
+
+	public void setEcmObjectStoreName(String ecmObjectStoreName) {
+		this.ecmObjectStoreName = ecmObjectStoreName;
+	}
+
+	public String getEcmQueryClause() {
+		return ecmQueryClause;
+	}
+
+	public void setEcmQueryClause(String ecmQueryClause) {
+		this.ecmQueryClause = ecmQueryClause;
+	}
+
+	public ArrayList<String> getStorageAreaList() {
+		return storageAreaList;
+	}
+
+	public void setStorageAreaList(ArrayList<String> storageAreaList) {
+		this.storageAreaList = storageAreaList;
+	}
+
+	public ArrayList<String> getStoragePolicyList() {
+		return storagePolicyList;
+	}
+
+	public void setStoragePolicyList(ArrayList<String> storagePolicyList) {
+		this.storagePolicyList = storagePolicyList;
+	}
+
+	
+	public static String TCT = "TCT";
+	
+	public static class CQT {
+		public static final HashMap<String, String> CQT_MAP = new HashMap<String, String>();
+		
+		static{
+			CQT_MAP.put("10100", "HAN/VP.HAN");
+			CQT_MAP.put("10101", "HAN/HAN.BDI");
+			CQT_MAP.put("10103", "HAN/HAN.THO");
+			CQT_MAP.put("10105", "HAN/HAN.HKI");
+			CQT_MAP.put("10106", "HAN/HAN.LBI");
+			CQT_MAP.put("10107", "HAN/HAN.HBT");
+			CQT_MAP.put("10108", "HAN/HAN.HMA");
+			CQT_MAP.put("10109", "HAN/HAN.DDA");
+			CQT_MAP.put("10111", "HAN/HAN.TXU");
+			CQT_MAP.put("10113", "HAN/HAN.CGI");
+			CQT_MAP.put("10115", "HAN/HAN.SSO");
+			CQT_MAP.put("10117", "HAN/HAN.DAN");
+			CQT_MAP.put("10119", "HAN/HAN.GLA");
+			CQT_MAP.put("10121", "HAN/HAN.TLI");
+			CQT_MAP.put("10123", "HAN/HAN.TTR");
+			CQT_MAP.put("10125", "HAN/HAN.MLI");
+			CQT_MAP.put("10127", "HAN/HAN.HDO");
+			CQT_MAP.put("10129", "HAN/HAN.STA");
+			CQT_MAP.put("10131", "HAN/HAN.PTH");
+			CQT_MAP.put("10133", "HAN/HAN.DPH");
+			CQT_MAP.put("10135", "HAN/HAN.TTH");
+			CQT_MAP.put("10137", "HAN/HAN.HDU");
+			CQT_MAP.put("10139", "HAN/HAN.QOA");
+			CQT_MAP.put("10141", "HAN/HAN.TOA");
+			CQT_MAP.put("10143", "HAN/HAN.TTI");
+			CQT_MAP.put("10145", "HAN/HAN.MDU");
+			CQT_MAP.put("10147", "HAN/HAN.UHO");
+			CQT_MAP.put("10149", "HAN/HAN.PXU");
+			CQT_MAP.put("10151", "HAN/HAN.BVI");
+			CQT_MAP.put("10153", "HAN/HAN.CMY");
+			CQT_MAP.put("10155", "HAN/HAN.NTL");
+			CQT_MAP.put("10157", "HAN/HAN.BTL");
+			CQT_MAP.put("10300", "HPH/VP.HPH");
+			CQT_MAP.put("10301", "HPH/HPH.HBA");
+			CQT_MAP.put("10303", "HPH/HPH.NQU");
+			CQT_MAP.put("10304", "HPH/HPH.HAN");
+			CQT_MAP.put("10305", "HPH/HPH.LCH");
+			CQT_MAP.put("10307", "HPH/HPH.KAN");
+			CQT_MAP.put("10309", "HPH/HPH.DSO");
+			CQT_MAP.put("10311", "HPH/HPH.TNG");
+			CQT_MAP.put("10313", "HPH/HPH.ADU");
+			CQT_MAP.put("10315", "HPH/HPH.ALA");
+			CQT_MAP.put("10317", "HPH/HPH.KTH");
+			CQT_MAP.put("10319", "HPH/HPH.TLA");
+			CQT_MAP.put("10321", "HPH/HPH.VBA");
+			CQT_MAP.put("10323", "HPH/HPH.CHA");
+			CQT_MAP.put("10325", "HPH/HPH.BLV");
+			CQT_MAP.put("10327", "HPH/HPH.DKI");
+			CQT_MAP.put("10700", "HDU/VP.HDU");
+			CQT_MAP.put("10701", "HDU/HDU.HDU");
+			CQT_MAP.put("10703", "HDU/HDU.CLI");
+			CQT_MAP.put("10705", "HDU/HDU.NSA");
+			CQT_MAP.put("10707", "HDU/HDU.THA");
+			CQT_MAP.put("10709", "HDU/HDU.KMO");
+			CQT_MAP.put("10711", "HDU/HDU.KTH");
+			CQT_MAP.put("10713", "HDU/HDU.GLO");
+			CQT_MAP.put("10715", "HDU/HDU.TKY");
+			CQT_MAP.put("10717", "HDU/HDU.CGI");
+			CQT_MAP.put("10719", "HDU/HDU.BGI");
+			CQT_MAP.put("10721", "HDU/HDU.TMI");
+			CQT_MAP.put("10723", "HDU/HDU.NGI");
+			CQT_MAP.put("10900", "HYE/VP.HYE");
+			CQT_MAP.put("10901", "HYE/HYE.HYE");
+			CQT_MAP.put("10903", "HYE/HYE.MHA");
+			CQT_MAP.put("10905", "HYE/HYE.KCH");
+			CQT_MAP.put("10907", "HYE/HYE.ATH");
+			CQT_MAP.put("10909", "HYE/HYE.KDO");
+			CQT_MAP.put("10911", "HYE/HYE.PCU");
+			CQT_MAP.put("10913", "HYE/HYE.TLU");
+			CQT_MAP.put("10915", "HYE/HYE.VGI");
+			CQT_MAP.put("10917", "HYE/HYE.VLA");
+			CQT_MAP.put("10919", "HYE/HYE.YMY");
+			CQT_MAP.put("11100", "HNA/VP.HNA");
+			CQT_MAP.put("11101", "HNA/HNA.PLY");
+			CQT_MAP.put("11103", "HNA/HNA.DTI");
+			CQT_MAP.put("11105", "HNA/HNA.KBA");
+			CQT_MAP.put("11107", "HNA/HNA.LNH");
+			CQT_MAP.put("11109", "HNA/HNA.TLI");
+			CQT_MAP.put("11111", "HNA/HNA.BLU");
+			CQT_MAP.put("11300", "NDI/VP.NDI");
+			CQT_MAP.put("11301", "NDI/NDI.NDI");
+			CQT_MAP.put("11303", "NDI/NDI.VBA");
+			CQT_MAP.put("11305", "NDI/NDI.MLO");
+			CQT_MAP.put("11307", "NDI/NDI.YYE");
+			CQT_MAP.put("11309", "NDI/NDI.NTR");
+			CQT_MAP.put("11311", "NDI/NDI.TNI");
+			CQT_MAP.put("11313", "NDI/NDI.XTR");
+			CQT_MAP.put("11315", "NDI/NDI.GTH");
+			CQT_MAP.put("11317", "NDI/NDI.NHU");
+			CQT_MAP.put("11319", "NDI/NDI.HHA");
+			CQT_MAP.put("11500", "TBI/VP.TBI");
+			CQT_MAP.put("11501", "TBI/TBI.TBI");
+			CQT_MAP.put("11503", "TBI/TBI.QPH");
+			CQT_MAP.put("11505", "TBI/TBI.HHA");
+			CQT_MAP.put("11507", "TBI/TBI.TTH");
+			CQT_MAP.put("11509", "TBI/TBI.DHU");
+			CQT_MAP.put("11511", "TBI/TBI.VTH");
+			CQT_MAP.put("11513", "TBI/TBI.KXU");
+			CQT_MAP.put("11515", "TBI/TBI.THA");
+			CQT_MAP.put("11700", "NBI/VP.NBI");
+			CQT_MAP.put("11701", "NBI/NBI.NBI");
+			CQT_MAP.put("11703", "NBI/NBI.TDI");
+			CQT_MAP.put("11705", "NBI/NBI.NQU");
+			CQT_MAP.put("11707", "NBI/NBI.GVI");
+			CQT_MAP.put("11709", "NBI/NBI.HLU");
+			CQT_MAP.put("11711", "NBI/NBI.YMO");
+			CQT_MAP.put("11713", "NBI/NBI.YKH");
+			CQT_MAP.put("11715", "NBI/NBI.KSO");
+			CQT_MAP.put("20100", "HGI/VP.HGI");
+			CQT_MAP.put("20101", "HGI/HGI.HGI");
+			CQT_MAP.put("20103", "HGI/HGI.DVA");
+			CQT_MAP.put("20105", "HGI/HGI.MVA");
+			CQT_MAP.put("20107", "HGI/HGI.YMI");
+			CQT_MAP.put("20109", "HGI/HGI.QBA");
+			CQT_MAP.put("20111", "HGI/HGI.BME");
+			CQT_MAP.put("20113", "HGI/HGI.HSP");
+			CQT_MAP.put("20115", "HGI/HGI.VXU");
+			CQT_MAP.put("20117", "HGI/HGI.XMA");
+			CQT_MAP.put("20118", "HGI/HGI.QBI");
+			CQT_MAP.put("20119", "HGI/HGI.BQU");
+			CQT_MAP.put("20300", "CBA/VP.CBA");
+			CQT_MAP.put("20301", "CBA/CBA.CBA");
+			CQT_MAP.put("20303", "CBA/CBA.BLA");
+			CQT_MAP.put("20305", "CBA/CBA.HQU");
+			CQT_MAP.put("20307", "CBA/CBA.TNO");
+			CQT_MAP.put("20309", "CBA/CBA.TLI");
+			CQT_MAP.put("20311", "CBA/CBA.TKH");
+			CQT_MAP.put("20313", "CBA/CBA.NBI");
+			CQT_MAP.put("20315", "CBA/CBA.HAN");
+			CQT_MAP.put("20317", "CBA/CBA.QUY");
+			CQT_MAP.put("20318", "CBA/CBA.PHO");
+			CQT_MAP.put("20319", "CBA/CBA.HLO");
+			CQT_MAP.put("20321", "CBA/CBA.TAN");
+			CQT_MAP.put("20323", "CBA/CBA.BAL");
+			CQT_MAP.put("20500", "LCA/VP.LCA");
+			CQT_MAP.put("20501", "LCA/LCA.LCA");
+			CQT_MAP.put("20505", "LCA/LCA.MKH");
+			CQT_MAP.put("20507", "LCA/LCA.BXA");
+			CQT_MAP.put("20509", "LCA/LCA.BHA");
+			CQT_MAP.put("20511", "LCA/LCA.BTH");
+			CQT_MAP.put("20513", "LCA/LCA.SPA");
+			CQT_MAP.put("20515", "LCA/LCA.BYE");
+			CQT_MAP.put("20519", "LCA/LCA.VBA");
+			CQT_MAP.put("20521", "LCA/LCA.SMC");
+			CQT_MAP.put("20700", "BCA/VP.BCA");
+			CQT_MAP.put("20701", "BCA/BCA.BCA");
+			CQT_MAP.put("20703", "BCA/BCA.BBE");
+			CQT_MAP.put("20704", "BCA/BCA.PNA");
+			CQT_MAP.put("20705", "BCA/BCA.NSO");
+			CQT_MAP.put("20707", "BCA/BCA.CDO");
+			CQT_MAP.put("20709", "BCA/BCA.NRI");
+			CQT_MAP.put("20711", "BCA/BCA.BTH");
+			CQT_MAP.put("20713", "BCA/BCA.CMO");
+			CQT_MAP.put("20900", "LSO/VP.LSO");
+			CQT_MAP.put("20901", "LSO/LSO.LSO");
+			CQT_MAP.put("20903", "LSO/LSO.TDI");
+			CQT_MAP.put("20905", "LSO/LSO.VLA");
+			CQT_MAP.put("20907", "LSO/LSO.BGI");
+			CQT_MAP.put("20909", "LSO/LSO.BSO");
+			CQT_MAP.put("20911", "LSO/LSO.VQU");
+			CQT_MAP.put("20913", "LSO/LSO.CLO");
+			CQT_MAP.put("20915", "LSO/LSO.LBI");
+			CQT_MAP.put("20917", "LSO/LSO.CLA");
+			CQT_MAP.put("20919", "LSO/LSO.DLA");
+			CQT_MAP.put("20921", "LSO/LSO.HLU");
+			CQT_MAP.put("21100", "TQU/VP.TQU");
+			CQT_MAP.put("21101", "TQU/TQU.TQU");
+			CQT_MAP.put("21103", "TQU/TQU.NHA");
+			CQT_MAP.put("21105", "TQU/TQU.CHO");
+			CQT_MAP.put("21107", "TQU/TQU.HYE");
+			CQT_MAP.put("21109", "TQU/TQU.YSO");
+			CQT_MAP.put("21111", "TQU/TQU.SDU");
+			CQT_MAP.put("21113", "TQU/TQU.LBI");
+			CQT_MAP.put("21300", "YBA/VP.YBA");
+			CQT_MAP.put("21301", "YBA/YBA.YBA");
+			CQT_MAP.put("21303", "YBA/YBA.NLO");
+			CQT_MAP.put("21305", "YBA/YBA.LYE");
+			CQT_MAP.put("21307", "YBA/YBA.VYE");
+			CQT_MAP.put("21309", "YBA/YBA.MCC");
+			CQT_MAP.put("21311", "YBA/YBA.TYE");
+			CQT_MAP.put("21313", "YBA/YBA.YBI");
+			CQT_MAP.put("21315", "YBA/YBA.VCH");
+			CQT_MAP.put("21317", "YBA/YBA.TTA");
+			CQT_MAP.put("21500", "TNG/VP.TNG");
+			CQT_MAP.put("21501", "TNG/TNG.TNG");
+			CQT_MAP.put("21503", "TNG/TNG.SCO");
+			CQT_MAP.put("21505", "TNG/TNG.DHO");
+			CQT_MAP.put("21507", "TNG/TNG.VNH");
+			CQT_MAP.put("21509", "TNG/TNG.PLU");
+			CQT_MAP.put("21511", "TNG/TNG.DHY");
+			CQT_MAP.put("21513", "TNG/TNG.DTU");
+			CQT_MAP.put("21515", "TNG/TNG.PBI");
+			CQT_MAP.put("21517", "TNG/TNG.PYE");
+			CQT_MAP.put("21700", "PTH/VP.PTH");
+			CQT_MAP.put("21701", "PTH/PTH.VTR");
+			CQT_MAP.put("21703", "PTH/PTH.PTH");
+			CQT_MAP.put("21705", "PTH/PTH.DHU");
+			CQT_MAP.put("21707", "PTH/PTH.HHO");
+			CQT_MAP.put("21709", "PTH/PTH.TBA");
+			CQT_MAP.put("21711", "PTH/PTH.PNI");
+			CQT_MAP.put("21713", "PTH/PTH.CKH");
+			CQT_MAP.put("21715", "PTH/PTH.YLA");
+			CQT_MAP.put("21717", "PTH/PTH.TNO");
+			CQT_MAP.put("21719", "PTH/PTH.TSO");
+			CQT_MAP.put("21720", "PTH/PTH.TAS");
+			CQT_MAP.put("21721", "PTH/PTH.LTH");
+			CQT_MAP.put("21723", "PTH/PTH.TTH");
+			CQT_MAP.put("21900", "VPH/VP.VPH");
+			CQT_MAP.put("21901", "VPH/VPH.VYE");
+			CQT_MAP.put("21902", "VPH/VPH.PYE");
+			CQT_MAP.put("21903", "VPH/VPH.LTH");
+			CQT_MAP.put("21904", "VPH/VPH.TDA");
+			CQT_MAP.put("21905", "VPH/VPH.TDU");
+			CQT_MAP.put("21907", "VPH/VPH.VTU");
+			CQT_MAP.put("21909", "VPH/VPH.YLA");
+			CQT_MAP.put("21913", "VPH/VPH.BXU");
+			CQT_MAP.put("21915", "VPH/VPH.SLO");
+			CQT_MAP.put("22100", "BGI/VP.BGI");
+			CQT_MAP.put("22101", "BGI/BGI.BGI");
+			CQT_MAP.put("22103", "BGI/BGI.YTH");
+			CQT_MAP.put("22105", "BGI/BGI.TYE");
+			CQT_MAP.put("22107", "BGI/BGI.LNG");
+			CQT_MAP.put("22109", "BGI/BGI.HHO");
+			CQT_MAP.put("22111", "BGI/BGI.LGI");
+			CQT_MAP.put("22113", "BGI/BGI.SDO");
+			CQT_MAP.put("22115", "BGI/BGI.LNA");
+			CQT_MAP.put("22117", "BGI/BGI.VYE");
+			CQT_MAP.put("22119", "BGI/BGI.YDU");
+			CQT_MAP.put("22300", "BNI/VP.BNI");
+			CQT_MAP.put("22301", "BNI/BNI.BNI");
+			CQT_MAP.put("22303", "BNI/BNI.YPH");
+			CQT_MAP.put("22305", "BNI/BNI.QVO");
+			CQT_MAP.put("22307", "BNI/BNI.TDU");
+			CQT_MAP.put("22309", "BNI/BNI.TTH");
+			CQT_MAP.put("22311", "BNI/BNI.LTA");
+			CQT_MAP.put("22313", "BNI/BNI.TSO");
+			CQT_MAP.put("22315", "BNI/BNI.GBI");
+			CQT_MAP.put("22500", "QNI/VP.QNI");
+			CQT_MAP.put("22501", "QNI/QNI.HLO");
+			CQT_MAP.put("22503", "QNI/QNI.CPH");
+			CQT_MAP.put("22505", "QNI/QNI.UBI");
+			CQT_MAP.put("22507", "QNI/QNI.BLI");
+			CQT_MAP.put("22509", "QNI/QNI.MCA");
+			CQT_MAP.put("22511", "QNI/QNI.HHA");
+			CQT_MAP.put("22513", "QNI/QNI.TYE");
+			CQT_MAP.put("22515", "QNI/QNI.BCH");
+			CQT_MAP.put("22517", "QNI/QNI.VDO");
+			CQT_MAP.put("22519", "QNI/QNI.HBO");
+			CQT_MAP.put("22521", "QNI/QNI.DTR");
+			CQT_MAP.put("22523", "QNI/QNI.CTO");
+			CQT_MAP.put("22525", "QNI/QNI.QYE");
+			CQT_MAP.put("22527", "QNI/QNI.DHA");
+			CQT_MAP.put("30100", "DBI/VP.DBI");
+			CQT_MAP.put("30101", "DBI/DBI.DBP");
+			CQT_MAP.put("30103", "DBI/DBI.MLA");
+			CQT_MAP.put("30104", "DBI/DBI.MNH");
+			CQT_MAP.put("30111", "DBI/DBI.MTR");
+			CQT_MAP.put("30113", "DBI/DBI.TCH");
+			CQT_MAP.put("30115", "DBI/DBI.TGI");
+			CQT_MAP.put("30117", "DBI/DBI.DBI");
+			CQT_MAP.put("30119", "DBI/DBI.DBD");
+			CQT_MAP.put("30121", "DBI/DBI.MAN");
+			CQT_MAP.put("30123", "DBI/DBI.NPO");
+			CQT_MAP.put("30200", "LCH/VP.LCH");
+			CQT_MAP.put("30201", "LCH/LCH.MTE");
+			CQT_MAP.put("30202", "LCH/LCH.LCH");
+			CQT_MAP.put("30203", "LCH/LCH.PTH");
+			CQT_MAP.put("30205", "LCH/LCH.TDU");
+			CQT_MAP.put("30207", "LCH/LCH.SHO");
+			CQT_MAP.put("30209", "LCH/LCH.TUY");
+			CQT_MAP.put("30211", "LCH/LCH.TAY");
+			CQT_MAP.put("30213", "LCH/LCH.NNH");
+			CQT_MAP.put("30300", "SLA/VP.SLA");
+			CQT_MAP.put("30301", "SLA/SLA.SLA");
+			CQT_MAP.put("30303", "SLA/SLA.QNH");
+			CQT_MAP.put("30305", "SLA/SLA.MLA");
+			CQT_MAP.put("30307", "SLA/SLA.TCH");
+			CQT_MAP.put("30309", "SLA/SLA.BYE");
+			CQT_MAP.put("30311", "SLA/SLA.PYE");
+			CQT_MAP.put("30313", "SLA/SLA.MSO");
+			CQT_MAP.put("30315", "SLA/SLA.SMA");
+			CQT_MAP.put("30317", "SLA/SLA.YCH");
+			CQT_MAP.put("30319", "SLA/SLA.MCH");
+			CQT_MAP.put("30321", "SLA/SLA.SCO");
+			CQT_MAP.put("30323", "SLA/SLA.VHO");
+			CQT_MAP.put("30500", "HBI/VP.HBI");
+			CQT_MAP.put("30501", "HBI/HBI.HBI");
+			CQT_MAP.put("30503", "HBI/HBI.DBA");
+			CQT_MAP.put("30505", "HBI/HBI.MCH");
+			CQT_MAP.put("30507", "HBI/HBI.KSO");
+			CQT_MAP.put("30509", "HBI/HBI.LSO");
+			CQT_MAP.put("30510", "HBI/HBI.CPH");
+			CQT_MAP.put("30511", "HBI/HBI.KBO");
+			CQT_MAP.put("30513", "HBI/HBI.TLA");
+			CQT_MAP.put("30515", "HBI/HBI.LAS");
+			CQT_MAP.put("30517", "HBI/HBI.LTH");
+			CQT_MAP.put("30519", "HBI/HBI.YTH");
+			CQT_MAP.put("40100", "THO/VP.THO");
+			CQT_MAP.put("40101", "THO/THO.THO");
+			CQT_MAP.put("40103", "THO/THO.BSO");
+			CQT_MAP.put("40105", "THO/THO.SSO");
+			CQT_MAP.put("40107", "THO/THO.MLA");
+			CQT_MAP.put("40109", "THO/THO.QHO");
+			CQT_MAP.put("40111", "THO/THO.QSO");
+			CQT_MAP.put("40113", "THO/THO.BTH");
+			CQT_MAP.put("40115", "THO/THO.CTH");
+			CQT_MAP.put("40117", "THO/THO.LCH");
+			CQT_MAP.put("40119", "THO/THO.TTH");
+			CQT_MAP.put("40121", "THO/THO.NLA");
+			CQT_MAP.put("40123", "THO/THO.TXU");
+			CQT_MAP.put("40125", "THO/THO.NXU");
+			CQT_MAP.put("40127", "THO/THO.NTH");
+			CQT_MAP.put("40129", "THO/THO.VLO");
+			CQT_MAP.put("40131", "THO/THO.HTR");
+			CQT_MAP.put("40133", "THO/THO.NSO");
+			CQT_MAP.put("40135", "THO/THO.YDI");
+			CQT_MAP.put("40137", "THO/THO.THX");
+			CQT_MAP.put("40139", "THO/THO.HLO");
+			CQT_MAP.put("40141", "THO/THO.THA");
+			CQT_MAP.put("40143", "THO/THO.HHO");
+			CQT_MAP.put("40145", "THO/THO.DSO");
+			CQT_MAP.put("40147", "THO/THO.TSO");
+			CQT_MAP.put("40149", "THO/THO.QXU");
+			CQT_MAP.put("40151", "THO/THO.NCO");
+			CQT_MAP.put("40153", "THO/THO.TGI");
+			CQT_MAP.put("40300", "NAN/VP.NAN");
+			CQT_MAP.put("40301", "NAN/NAN.VIN");
+			CQT_MAP.put("40303", "NAN/NAN.CLO");
+			CQT_MAP.put("40305", "NAN/NAN.QPH");
+			CQT_MAP.put("40307", "NAN/NAN.QCH");
+			CQT_MAP.put("40309", "NAN/NAN.KSO");
+			CQT_MAP.put("40311", "NAN/NAN.QHO");
+			CQT_MAP.put("40313", "NAN/NAN.NDA");
+			CQT_MAP.put("40314", "NAN/NAN.THO");
+			CQT_MAP.put("40315", "NAN/NAN.TDU");
+			CQT_MAP.put("40317", "NAN/NAN.QLU");
+			CQT_MAP.put("40319", "NAN/NAN.TKY");
+			CQT_MAP.put("40321", "NAN/NAN.CCU");
+			CQT_MAP.put("40323", "NAN/NAN.YTH");
+			CQT_MAP.put("40325", "NAN/NAN.DCH");
+			CQT_MAP.put("40327", "NAN/NAN.ASO");
+			CQT_MAP.put("40329", "NAN/NAN.DLU");
+			CQT_MAP.put("40331", "NAN/NAN.TCH");
+			CQT_MAP.put("40333", "NAN/NAN.NLO");
+			CQT_MAP.put("40335", "NAN/NAN.NAD");
+			CQT_MAP.put("40337", "NAN/NAN.HNG");
+			CQT_MAP.put("40339", "NAN/NAN.HMA");
+			CQT_MAP.put("40500", "HTI/VP.HTI");
+			CQT_MAP.put("40501", "HTI/HTI.HTI");
+			CQT_MAP.put("40503", "HTI/HTI.HLI");
+			CQT_MAP.put("40505", "HTI/HTI.NXU");
+			CQT_MAP.put("40507", "HTI/HTI.DTH");
+			CQT_MAP.put("40509", "HTI/HTI.HSO");
+			CQT_MAP.put("40511", "HTI/HTI.CLO");
+			CQT_MAP.put("40513", "HTI/HTI.THA");
+			CQT_MAP.put("40515", "HTI/HTI.CXU");
+			CQT_MAP.put("40517", "HTI/HTI.HKH");
+			CQT_MAP.put("40519", "HTI/HTI.KAN");
+			CQT_MAP.put("40520", "HTI/HTI.KYA");
+			CQT_MAP.put("40521", "HTI/HTI.VQU");
+			CQT_MAP.put("40523", "HTI/HTI.LHA");
+			CQT_MAP.put("40700", "QBI/VP.QBI");
+			CQT_MAP.put("40701", "QBI/QBI.DHO");
+			CQT_MAP.put("40703", "QBI/QBI.THO");
+			CQT_MAP.put("40705", "QBI/QBI.MHO");
+			CQT_MAP.put("40707", "QBI/QBI.QTR");
+			CQT_MAP.put("40709", "QBI/QBI.BTR");
+			CQT_MAP.put("40711", "QBI/QBI.QNI");
+			CQT_MAP.put("40713", "QBI/QBI.LTH");
+			CQT_MAP.put("40715", "QBI/QBI.BDO");
+			CQT_MAP.put("40900", "QTR/VP.QTR");
+			CQT_MAP.put("40901", "QTR/QTR.DHA");
+			CQT_MAP.put("40903", "QTR/QTR.QTR");
+			CQT_MAP.put("40905", "QTR/QTR.VLI");
+			CQT_MAP.put("40907", "QTR/QTR.GLI");
+			CQT_MAP.put("40909", "QTR/QTR.CLO");
+			CQT_MAP.put("40911", "QTR/QTR.TPH");
+			CQT_MAP.put("40913", "QTR/QTR.HLA");
+			CQT_MAP.put("40915", "QTR/QTR.HHO");
+			CQT_MAP.put("40917", "QTR/QTR.DKR");
+			CQT_MAP.put("40919", "QTR/QTR.CCO");
+			CQT_MAP.put("41100", "TTH/VP.TTH");
+			CQT_MAP.put("41101", "TTH/TTH.HUE");
+			CQT_MAP.put("41103", "TTH/TTH.PDI");
+			CQT_MAP.put("41105", "TTH/TTH.QDI");
+			CQT_MAP.put("41107", "TTH/TTH.HTR");
+			CQT_MAP.put("41109", "TTH/TTH.PVA");
+			CQT_MAP.put("41111", "TTH/TTH.HTH");
+			CQT_MAP.put("41113", "TTH/TTH.PLO");
+			CQT_MAP.put("41115", "TTH/TTH.ALU");
+			CQT_MAP.put("41117", "TTH/TTH.NDO");
+			CQT_MAP.put("50100", "DAN/VP.DAN");
+			CQT_MAP.put("50101", "DAN/DAN.HCH");
+			CQT_MAP.put("50103", "DAN/DAN.TKH");
+			CQT_MAP.put("50105", "DAN/DAN.STR");
+			CQT_MAP.put("50107", "DAN/DAN.NHS");
+			CQT_MAP.put("50109", "DAN/DAN.LCH");
+			CQT_MAP.put("50111", "DAN/DAN.HVA");
+			CQT_MAP.put("50113", "DAN/DAN.HSA");
+			CQT_MAP.put("50115", "DAN/DAN.CLE");
+			CQT_MAP.put("50300", "QNA/VP.QNA");
+			CQT_MAP.put("50301", "QNA/QNA.TKY");
+			CQT_MAP.put("50302", "QNA/QNA.PNI");
+			CQT_MAP.put("50303", "QNA/QNA.HAN");
+			CQT_MAP.put("50304", "QNA/QNA.TGI");
+			CQT_MAP.put("50305", "QNA/QNA.DGI");
+			CQT_MAP.put("50307", "QNA/QNA.DLO");
+			CQT_MAP.put("50309", "QNA/QNA.DBA");
+			CQT_MAP.put("50311", "QNA/QNA.DXU");
+			CQT_MAP.put("50313", "QNA/QNA.NGI");
+			CQT_MAP.put("50315", "QNA/QNA.TBI");
+			CQT_MAP.put("50317", "QNA/QNA.QSO");
+			CQT_MAP.put("50318", "QNA/QNA.NSO");
+			CQT_MAP.put("50319", "QNA/QNA.HDU");
+			CQT_MAP.put("50321", "QNA/QNA.TPH");
+			CQT_MAP.put("50323", "QNA/QNA.PSO");
+			CQT_MAP.put("50325", "QNA/QNA.NTH");
+			CQT_MAP.put("50327", "QNA/QNA.BTM");
+			CQT_MAP.put("50329", "QNA/QNA.NTM");
+			CQT_MAP.put("50500", "QNG/VP.QNG");
+			CQT_MAP.put("50501", "QNG/QNG.QNG");
+			CQT_MAP.put("50503", "QNG/QNG.LSO");
+			CQT_MAP.put("50505", "QNG/QNG.BSO");
+			CQT_MAP.put("50507", "QNG/QNG.TBO");
+			CQT_MAP.put("50508", "QNG/QNG.TTR");
+			CQT_MAP.put("50509", "QNG/QNG.STI");
+			CQT_MAP.put("50511", "QNG/QNG.STA");
+			CQT_MAP.put("50513", "QNG/QNG.SHA");
+			CQT_MAP.put("50515", "QNG/QNG.TNG");
+			CQT_MAP.put("50517", "QNG/QNG.NHA");
+			CQT_MAP.put("50519", "QNG/QNG.MLO");
+			CQT_MAP.put("50521", "QNG/QNG.MDU");
+			CQT_MAP.put("50523", "QNG/QNG.DPH");
+			CQT_MAP.put("50525", "QNG/QNG.BTO");
+			CQT_MAP.put("50700", "BDI/VP.BDI");
+			CQT_MAP.put("50701", "BDI/BDI.QNH");
+			CQT_MAP.put("50703", "BDI/BDI.ALA");
+			CQT_MAP.put("50705", "BDI/BDI.HNH");
+			CQT_MAP.put("50707", "BDI/BDI.HAN");
+			CQT_MAP.put("50709", "BDI/BDI.PMY");
+			CQT_MAP.put("50711", "BDI/BDI.VTH");
+			CQT_MAP.put("50713", "BDI/BDI.PCA");
+			CQT_MAP.put("50715", "BDI/BDI.TSO");
+			CQT_MAP.put("50717", "BDI/BDI.ANH");
+			CQT_MAP.put("50719", "BDI/BDI.TPH");
+			CQT_MAP.put("50721", "BDI/BDI.VCA");
+			CQT_MAP.put("50900", "PHY/VP.PHY");
+			CQT_MAP.put("50901", "PHY/PHY.THO");
+			CQT_MAP.put("50903", "PHY/PHY.DXU");
+			CQT_MAP.put("50905", "PHY/PHY.SCA");
+			CQT_MAP.put("50907", "PHY/PHY.TAN");
+			CQT_MAP.put("50909", "PHY/PHY.SHO");
+			CQT_MAP.put("50911", "PHY/PHY.DHO");
+			CQT_MAP.put("50912", "PHY/PHY.TAH");
+			CQT_MAP.put("50913", "PHY/PHY.SHI");
+			CQT_MAP.put("50915", "PHY/PHY.PHO");
+			CQT_MAP.put("51100", "KHH/VP.KHH");
+			CQT_MAP.put("51101", "KHH/KHH.NTR");
+			CQT_MAP.put("51103", "KHH/KHH.VNI");
+			CQT_MAP.put("51105", "KHH/KHH.NHO");
+			CQT_MAP.put("51107", "KHH/KHH.DKH");
+			CQT_MAP.put("51109", "KHH/KHH.CRA");
+			CQT_MAP.put("51111", "KHH/KHH.KVI");
+			CQT_MAP.put("51113", "KHH/KHH.KSO");
+			CQT_MAP.put("51115", "KHH/KHH.TSA");
+			CQT_MAP.put("51117", "KHH/KHH.CLA");
+			CQT_MAP.put("60100", "KTU/VP.KTU");
+			CQT_MAP.put("60101", "KTU/KTU.KTU");
+			CQT_MAP.put("60103", "KTU/KTU.DGL");
+			CQT_MAP.put("60105", "KTU/KTU.NHO");
+			CQT_MAP.put("60107", "KTU/KTU.DTO");
+			CQT_MAP.put("60108", "KTU/KTU.KRA");
+			CQT_MAP.put("60109", "KTU/KTU.KPL");
+			CQT_MAP.put("60111", "KTU/KTU.DHA");
+			CQT_MAP.put("60113", "KTU/KTU.STH");
+			CQT_MAP.put("60114", "KTU/KTU.IHD");
+			CQT_MAP.put("60115", "KTU/KTU.TMR");
+			CQT_MAP.put("60300", "GLA/VP.GLA");
+			CQT_MAP.put("60301", "GLA/GLA.PLE");
+			CQT_MAP.put("60303", "GLA/GLA.KBA");
+			CQT_MAP.put("60305", "GLA/GLA.MYA");
+			CQT_MAP.put("60307", "GLA/GLA.CPA");
+			CQT_MAP.put("60309", "GLA/GLA.IGR");
+			CQT_MAP.put("60311", "GLA/GLA.AKH");
+			CQT_MAP.put("60313", "GLA/GLA.KCH");
+			CQT_MAP.put("60315", "GLA/GLA.DCO");
+			CQT_MAP.put("60317", "GLA/GLA.CPR");
+			CQT_MAP.put("60319", "GLA/GLA.CSE");
+			CQT_MAP.put("60320", "GLA/GLA.IPA");
+			CQT_MAP.put("60321", "GLA/GLA.APA");
+			CQT_MAP.put("60323", "GLA/GLA.KPA");
+			CQT_MAP.put("60325", "GLA/GLA.DDO");
+			CQT_MAP.put("60327", "GLA/GLA.DPO");
+			CQT_MAP.put("60329", "GLA/GLA.PTH");
+			CQT_MAP.put("60331", "GLA/GLA.CPU");
+			CQT_MAP.put("60500", "DLA/VP.DLA");
+			CQT_MAP.put("60501", "DLA/DLA.BMT");
+			CQT_MAP.put("60503", "DLA/DLA.EHL");
+			CQT_MAP.put("60505", "DLA/DLA.ESU");
+			CQT_MAP.put("60507", "DLA/DLA.KNA");
+			CQT_MAP.put("60509", "DLA/DLA.BHO");
+			CQT_MAP.put("60511", "DLA/DLA.BDO");
+			CQT_MAP.put("60513", "DLA/DLA.CMG");
+			CQT_MAP.put("60515", "DLA/DLA.EKA");
+			CQT_MAP.put("60517", "DLA/DLA.MDR");
+			CQT_MAP.put("60519", "DLA/DLA.KPA");
+			CQT_MAP.put("60523", "DLA/DLA.KAN");
+			CQT_MAP.put("60525", "DLA/DLA.KBO");
+			CQT_MAP.put("60531", "DLA/DLA.LAK");
+			CQT_MAP.put("60537", "DLA/DLA.CKU");
+			CQT_MAP.put("60539", "DLA/DLA.KBU");
+			CQT_MAP.put("60600", "DNO/VP.DNO");
+			CQT_MAP.put("60603", "DNO/DNO.CJU");
+			CQT_MAP.put("60605", "DNO/DNO.KNO");
+			CQT_MAP.put("60607", "DNO/DNO.DMI");
+			CQT_MAP.put("60609", "DNO/DNO.DSO");
+			CQT_MAP.put("60611", "DNO/DNO.DRL");
+			CQT_MAP.put("60613", "DNO/DNO.GNG");
+			CQT_MAP.put("60615", "DNO/DNO.GLO");
+			CQT_MAP.put("60617", "DNO/DNO.TDU");
+			CQT_MAP.put("70100", "HCM/VP.HCM");
+			CQT_MAP.put("70101", "HCM/HCM.QMO");
+			CQT_MAP.put("70103", "HCM/HCM.QHA");
+			CQT_MAP.put("70105", "HCM/HCM.QBA");
+			CQT_MAP.put("70107", "HCM/HCM.QBO");
+			CQT_MAP.put("70109", "HCM/HCM.QNA");
+			CQT_MAP.put("70111", "HCM/HCM.QSA");
+			CQT_MAP.put("70113", "HCM/HCM.QUB");
+			CQT_MAP.put("70115", "HCM/HCM.QTA");
+			CQT_MAP.put("70117", "HCM/HCM.QCH");
+			CQT_MAP.put("70119", "HCM/HCM.QMU");
+			CQT_MAP.put("70121", "HCM/HCM.QMM");
+			CQT_MAP.put("70123", "HCM/HCM.QMH");
+			CQT_MAP.put("70125", "HCM/HCM.GVA");
+			CQT_MAP.put("70127", "HCM/HCM.TBI");
+			CQT_MAP.put("70128", "HCM/HCM.TPH");
+			CQT_MAP.put("70129", "HCM/HCM.BTH");
+			CQT_MAP.put("70131", "HCM/HCM.PNH");
+			CQT_MAP.put("70133", "HCM/HCM.TDU");
+			CQT_MAP.put("70134", "HCM/HCM.BTA");
+			CQT_MAP.put("70135", "HCM/HCM.CCH");
+			CQT_MAP.put("70137", "HCM/HCM.HMO");
+			CQT_MAP.put("70139", "HCM/HCM.BCH");
+			CQT_MAP.put("70141", "HCM/HCM.NBE");
+			CQT_MAP.put("70143", "HCM/HCM.CGI");
+			CQT_MAP.put("70300", "LDO/VP.LDO");
+			CQT_MAP.put("70301", "LDO/LDO.DLA");
+			CQT_MAP.put("70303", "LDO/LDO.BLO");
+			CQT_MAP.put("70305", "LDO/LDO.LDU");
+			CQT_MAP.put("70307", "LDO/LDO.DDU");
+			CQT_MAP.put("70309", "LDO/LDO.DTR");
+			CQT_MAP.put("70311", "LDO/LDO.LHA");
+			CQT_MAP.put("70313", "LDO/LDO.BLA");
+			CQT_MAP.put("70315", "LDO/LDO.DLI");
+			CQT_MAP.put("70317", "LDO/LDO.DHU");
+			CQT_MAP.put("70319", "LDO/LDO.DTE");
+			CQT_MAP.put("70321", "LDO/LDO.CTI");
+			CQT_MAP.put("70323", "LDO/LDO.DRO");
+			CQT_MAP.put("70500", "NTH/VP.NTH");
+			CQT_MAP.put("70501", "NTH/NTH.PRA");
+			CQT_MAP.put("70503", "NTH/NTH.NSO");
+			CQT_MAP.put("70505", "NTH/NTH.NHA");
+			CQT_MAP.put("70507", "NTH/NTH.NPH");
+			CQT_MAP.put("70509", "NTH/NTH.BAI");
+			CQT_MAP.put("70511", "NTH/NTH.TBA");
+			CQT_MAP.put("70513", "NTH/NTH.TNA");
+			CQT_MAP.put("70700", "BPH/VP.BPH");
+			CQT_MAP.put("70701", "BPH/BPH.DPH");
+			CQT_MAP.put("70703", "BPH/BPH.PLO");
+			CQT_MAP.put("70705", "BPH/BPH.LNI");
+			CQT_MAP.put("70706", "BPH/BPH.BDO");
+			CQT_MAP.put("70707", "BPH/BPH.BDA");
+			CQT_MAP.put("70709", "BPH/BPH.BLO");
+			CQT_MAP.put("70710", "BPH/BPH.CHO");
+			CQT_MAP.put("70711", "BPH/BPH.DXO");
+			CQT_MAP.put("70713", "BPH/BPH.HQU");
+			CQT_MAP.put("70715", "BPH/BPH.BGM");
+			CQT_MAP.put("70716", "BPH/BPH.PRI");
+			CQT_MAP.put("70900", "TNI/VP.TNI");
+			CQT_MAP.put("70901", "TNI/TNI.TNI");
+			CQT_MAP.put("70903", "TNI/TNI.TBI");
+			CQT_MAP.put("70905", "TNI/TNI.TCH");
+			CQT_MAP.put("70907", "TNI/TNI.DMC");
+			CQT_MAP.put("70909", "TNI/TNI.CTH");
+			CQT_MAP.put("70911", "TNI/TNI.HTH");
+			CQT_MAP.put("70913", "TNI/TNI.BCA");
+			CQT_MAP.put("70915", "TNI/TNI.GDA");
+			CQT_MAP.put("70917", "TNI/TNI.TBA");
+			CQT_MAP.put("71100", "BDU/VP.BDU");
+			CQT_MAP.put("71101", "BDU/BDU.TDM");
+			CQT_MAP.put("71103", "BDU/BDU.BCA");
+			CQT_MAP.put("71105", "BDU/BDU.TUY");
+			CQT_MAP.put("71107", "BDU/BDU.TAN");
+			CQT_MAP.put("71109", "BDU/BDU.DAN");
+			CQT_MAP.put("71111", "BDU/BDU.PGI");
+			CQT_MAP.put("71113", "BDU/BDU.DTI");
+			CQT_MAP.put("71115", "BDU/BDU.BBA");
+			CQT_MAP.put("71117", "BDU/BDU.BTU");
+			CQT_MAP.put("71300", "DON/VP.DON");
+			CQT_MAP.put("71301", "DON/DON.BHO");
+			CQT_MAP.put("71302", "DON/DON.LKH");
+			CQT_MAP.put("71303", "DON/DON.TPH");
+			CQT_MAP.put("71305", "DON/DON.DQU");
+			CQT_MAP.put("71307", "DON/DON.VCU");
+			CQT_MAP.put("71308", "DON/DON.TBO");
+			CQT_MAP.put("71309", "DON/DON.TNH");
+			CQT_MAP.put("71311", "DON/DON.CMY");
+			CQT_MAP.put("71313", "DON/DON.XLO");
+			CQT_MAP.put("71315", "DON/DON.LTH");
+			CQT_MAP.put("71317", "DON/DON.NTR");
+			CQT_MAP.put("71500", "BTH/VP.BTH");
+			CQT_MAP.put("71501", "BTH/BTH.PTH");
+			CQT_MAP.put("71503", "BTH/BTH.TPH");
+			CQT_MAP.put("71505", "BTH/BTH.BBI");
+			CQT_MAP.put("71507", "BTH/BTH.HTB");
+			CQT_MAP.put("71509", "BTH/BTH.HTN");
+			CQT_MAP.put("71511", "BTH/BTH.TLI");
+			CQT_MAP.put("71513", "BTH/BTH.LGI");
+			CQT_MAP.put("71514", "BTH/BTH.HTA");
+			CQT_MAP.put("71515", "BTH/BTH.DLI");
+			CQT_MAP.put("71517", "BTH/BTH.PQU");
+			CQT_MAP.put("71700", "BRV/VP.BRV");
+			CQT_MAP.put("71701", "BRV/BRV.VTA");
+			CQT_MAP.put("71703", "BRV/BRV.BRI");
+			CQT_MAP.put("71705", "BRV/BRV.CDU");
+			CQT_MAP.put("71707", "BRV/BRV.XMO");
+			CQT_MAP.put("71709", "BRV/BRV.TTH");
+			CQT_MAP.put("71711", "BRV/BRV.LDI");
+			CQT_MAP.put("71712", "BRV/BRV.DDO");
+			CQT_MAP.put("71713", "BRV/BRV.CDA");
+			CQT_MAP.put("80100", "LAN/VP.LAN");
+			CQT_MAP.put("80101", "LAN/LAN.TAN");
+			CQT_MAP.put("80103", "LAN/LAN.THU");
+			CQT_MAP.put("80105", "LAN/LAN.VHU");
+			CQT_MAP.put("80107", "LAN/LAN.MHO");
+			CQT_MAP.put("80109", "LAN/LAN.TTH");
+			CQT_MAP.put("80111", "LAN/LAN.THO");
+			CQT_MAP.put("80113", "LAN/LAN.DHU");
+			CQT_MAP.put("80115", "LAN/LAN.DHO");
+			CQT_MAP.put("80117", "LAN/LAN.BLU");
+			CQT_MAP.put("80119", "LAN/LAN.THT");
+			CQT_MAP.put("80121", "LAN/LAN.CTH");
+			CQT_MAP.put("80123", "LAN/LAN.TTR");
+			CQT_MAP.put("80125", "LAN/LAN.CDU");
+			CQT_MAP.put("80127", "LAN/LAN.CGI");
+			CQT_MAP.put("80129", "LAN/LAN.KTU");
+			CQT_MAP.put("80300", "DTH/VP.DTH");
+			CQT_MAP.put("80301", "DTH/DTH.CLA");
+			CQT_MAP.put("80303", "DTH/DTH.SDE");
+			CQT_MAP.put("80305", "DTH/DTH.THO");
+			CQT_MAP.put("80307", "DTH/DTH.HNG");
+			CQT_MAP.put("80309", "DTH/DTH.TNO");
+			CQT_MAP.put("80311", "DTH/DTH.TBI");
+			CQT_MAP.put("80313", "DTH/DTH.TMU");
+			CQT_MAP.put("80315", "DTH/DTH.CAL");
+			CQT_MAP.put("80317", "DTH/DTH.LVO");
+			CQT_MAP.put("80319", "DTH/DTH.LVU");
+			CQT_MAP.put("80321", "DTH/DTH.CTH");
+			CQT_MAP.put("80323", "DTH/DTH.HNU");
+			CQT_MAP.put("80500", "AGI/VP.AGI");
+			CQT_MAP.put("80501", "AGI/AGI.LXU");
+			CQT_MAP.put("80503", "AGI/AGI.CDO");
+			CQT_MAP.put("80505", "AGI/AGI.APH");
+			CQT_MAP.put("80507", "AGI/AGI.TCH");
+			CQT_MAP.put("80509", "AGI/AGI.PTA");
+			CQT_MAP.put("80511", "AGI/AGI.CPH");
+			CQT_MAP.put("80513", "AGI/AGI.TBI");
+			CQT_MAP.put("80515", "AGI/AGI.TTO");
+			CQT_MAP.put("80517", "AGI/AGI.CMO");
+			CQT_MAP.put("80519", "AGI/AGI.CTH");
+			CQT_MAP.put("80521", "AGI/AGI.TSO");
+			CQT_MAP.put("80700", "TGI/VP.TGI");
+			CQT_MAP.put("80701", "TGI/TGI.MTH");
+			CQT_MAP.put("80703", "TGI/TGI.GCO");
+			CQT_MAP.put("80705", "TGI/TGI.TPH");
+			CQT_MAP.put("80707", "TGI/TGI.CTH");
+			CQT_MAP.put("80709", "TGI/TGI.CLA");
+			CQT_MAP.put("80711", "TGI/TGI.CGO");
+			CQT_MAP.put("80713", "TGI/TGI.CBE");
+			CQT_MAP.put("80715", "TGI/TGI.GCT");
+			CQT_MAP.put("80717", "TGI/TGI.GCD");
+			CQT_MAP.put("80719", "TGI/TGI.TPD");
+			CQT_MAP.put("80721", "TGI/TGI.CAL");
+			CQT_MAP.put("80900", "VLO/VP.VLO");
+			CQT_MAP.put("80901", "VLO/VLO.VLO");
+			CQT_MAP.put("80903", "VLO/VLO.LHO");
+			CQT_MAP.put("80905", "VLO/VLO.MTH");
+			CQT_MAP.put("80907", "VLO/VLO.BMI");
+			CQT_MAP.put("80908", "VLO/VLO.BTA");
+			CQT_MAP.put("80909", "VLO/VLO.TBI");
+			CQT_MAP.put("80911", "VLO/VLO.TON");
+			CQT_MAP.put("80913", "VLO/VLO.VLI");
+			CQT_MAP.put("81100", "BTR/VP.BTR");
+			CQT_MAP.put("81101", "BTR/BTR.BTR");
+			CQT_MAP.put("81103", "BTR/BTR.CTH");
+			CQT_MAP.put("81105", "BTR/BTR.CLA");
+			CQT_MAP.put("81107", "BTR/BTR.MCA");
+			CQT_MAP.put("81108", "BTR/BTR.MCB");
+			CQT_MAP.put("81109", "BTR/BTR.GTR");
+			CQT_MAP.put("81111", "BTR/BTR.BDA");
+			CQT_MAP.put("81113", "BTR/BTR.BTI");
+			CQT_MAP.put("81115", "BTR/BTR.TPH");
+			CQT_MAP.put("81300", "KGI/VP.KGI");
+			CQT_MAP.put("81301", "KGI/KGI.RGI");
+			CQT_MAP.put("81303", "KGI/KGI.KLU");
+			CQT_MAP.put("81304", "KGI/KGI.GTH");
+			CQT_MAP.put("81305", "KGI/KGI.HDA");
+			CQT_MAP.put("81307", "KGI/KGI.THI");
+			CQT_MAP.put("81309", "KGI/KGI.CTH");
+			CQT_MAP.put("81311", "KGI/KGI.GRI");
+			CQT_MAP.put("81313", "KGI/KGI.GQU");
+			CQT_MAP.put("81315", "KGI/KGI.ABI");
+			CQT_MAP.put("81317", "KGI/KGI.AMI");
+			CQT_MAP.put("81319", "KGI/KGI.VTH");
+			CQT_MAP.put("81321", "KGI/KGI.PQU");
+			CQT_MAP.put("81323", "KGI/KGI.KHA");
+			CQT_MAP.put("81325", "KGI/KGI.HTI");
+			CQT_MAP.put("81327", "KGI/KGI.UMT");
+			CQT_MAP.put("81500", "CTH/VP.CTH");
+			CQT_MAP.put("81503", "CTH/CTH.TNO");
+			CQT_MAP.put("81505", "CTH/CTH.OMO");
+			CQT_MAP.put("81519", "CTH/CTH.NKI");
+			CQT_MAP.put("81521", "CTH/CTH.BTH");
+			CQT_MAP.put("81523", "CTH/CTH.CRA");
+			CQT_MAP.put("81525", "CTH/CTH.VTH");
+			CQT_MAP.put("81527", "CTH/CTH.CDO");
+			CQT_MAP.put("81529", "CTH/CTH.PDI");
+			CQT_MAP.put("81531", "CTH/CTH.TLA");
+			CQT_MAP.put("81600", "HAG/VP.HAG");
+			CQT_MAP.put("81601", "HAG/HAG.VTH");
+			CQT_MAP.put("81603", "HAG/HAG.CTA");
+			CQT_MAP.put("81605", "HAG/HAG.CTH");
+			CQT_MAP.put("81607", "HAG/HAG.NBA");
+			CQT_MAP.put("81608", "HAG/HAG.PHI");
+			CQT_MAP.put("81609", "HAG/HAG.VIT");
+			CQT_MAP.put("81611", "HAG/HAG.LMY");
+			CQT_MAP.put("81612", "HAG/HAG.LOM");
+			CQT_MAP.put("81700", "TVI/VP.TVI");
+			CQT_MAP.put("81701", "TVI/TVI.TVI");
+			CQT_MAP.put("81703", "TVI/TVI.CLO");
+			CQT_MAP.put("81705", "TVI/TVI.CTH");
+			CQT_MAP.put("81707", "TVI/TVI.CKE");
+			CQT_MAP.put("81709", "TVI/TVI.TCA");
+			CQT_MAP.put("81711", "TVI/TVI.CNG");
+			CQT_MAP.put("81713", "TVI/TVI.TCU");
+			CQT_MAP.put("81715", "TVI/TVI.DHA");
+			CQT_MAP.put("81900", "STR/VP.STR");
+			CQT_MAP.put("81901", "STR/STR.STR");
+			CQT_MAP.put("81903", "STR/STR.KSA");
+			CQT_MAP.put("81905", "STR/STR.LPH");
+			CQT_MAP.put("81906", "STR/STR.CLD");
+			CQT_MAP.put("81907", "STR/STR.MTU");
+			CQT_MAP.put("81909", "STR/STR.MXU");
+			CQT_MAP.put("81911", "STR/STR.TTR");
+			CQT_MAP.put("81912", "STR/STR.NNA");
+			CQT_MAP.put("81913", "STR/STR.VCH");
+			CQT_MAP.put("81915", "STR/STR.CTH");
+			CQT_MAP.put("81917", "STR/STR.TDE");
+			CQT_MAP.put("82100", "BLI/VP.BLI");
+			CQT_MAP.put("82101", "BLI/BLI.BLI");
+			CQT_MAP.put("82103", "BLI/BLI.HDA");
+			CQT_MAP.put("82105", "BLI/BLI.VLO");
+			CQT_MAP.put("82106", "BLI/BLI.HBI");
+			CQT_MAP.put("82107", "BLI/BLI.GRA");
+			CQT_MAP.put("82109", "BLI/BLI.PLO");
+			CQT_MAP.put("82111", "BLI/BLI.DHA");
+			CQT_MAP.put("82300", "CMA/VP.CMA");
+			CQT_MAP.put("82301", "CMA/CMA.CMA");
+			CQT_MAP.put("82303", "CMA/CMA.TBI");
+			CQT_MAP.put("82305", "CMA/CMA.UMI");
+			CQT_MAP.put("82307", "CMA/CMA.TVT");
+			CQT_MAP.put("82308", "CMA/CMA.PTA");
+			CQT_MAP.put("82309", "CMA/CMA.CNU");
+			CQT_MAP.put("82311", "CMA/CMA.DRO");
+			CQT_MAP.put("82312", "CMA/CMA.NCA");
+			CQT_MAP.put("82313", "CMA/CMA.NHI");
+
+		}
+	}
+	
+	public static class NGHIEPVU_HOSO {
+		
+		public static class HOA_DON_DIEN_TU {
+			//chung folder cha level Hoa don dien tu
+			public static final String FOLDER_PARENT = "HDON_DTU";
+			
+			public static final String GTKT = "HDON_DTU/GTKT";
+			public static final String BAN_HANG = "HDON_DTU/BHANG";
+			public static final String XUAT_KHO_GUI_BAN_DAI_LY = "HDON_DTU/XK_DLY";
+			public static final String XUAT_KHO_VAN_CHUYEN_NOI_BO = "HDON_DTU/XK_VCHUYEN_NBO";
+			public static final String BAN_HANG_KHU_PHI_THUE_QUAN = "HDON_DTU/BHANG_KPHI_TQUAN";
+		}
+		
+	}	
+	
+	
+}
+
