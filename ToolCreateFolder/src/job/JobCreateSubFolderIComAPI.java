@@ -1,6 +1,7 @@
 package job;
 
 import java.sql.Connection;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,14 +59,17 @@ public class JobCreateSubFolderIComAPI {
                 statusJob = jobParameter.getParam_value();
             }
             LOGGER.info("Trạng thái job: " + statusJob);
-            if ("ON".equalsIgnoreCase(statusJob)) {
+            LocalDateTime now = LocalDateTime.now();
+            
+            //chi chay ngay 25 cua thang
+            if ("ON".equalsIgnoreCase(statusJob) && now.getDayOfMonth() == 27) {
                 LOGGER.info("Job CreateSubFolderICOM hoàn tất thành công.");
 				List<FolderDTO> listFolder = new ArrayList<>();
 				listFolder = dao.getListFolderLast(conn);
 				if (listFolder.size() > 0) {
 					try {
 						// creating a pool of n threads
-						ExecutorService executor = Executors.newFixedThreadPool(1);
+						ExecutorService executor = Executors.newFixedThreadPool(5);
 						while (!listFolder.isEmpty()) {
 							Runnable worker = new CreateSubFolderIComAPI(listFolder, conn);
 							executor.execute(worker);

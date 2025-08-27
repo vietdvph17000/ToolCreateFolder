@@ -2,6 +2,7 @@ package createAndDeleteFolder;
 
 import java.sql.Connection;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -56,68 +57,93 @@ public class CreateSubFolderIComAPI implements Runnable {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void createFolder() throws Exception {
-	    try {
-	        String folderId = folder.getFolderId();
-	        Integer parentIComId = folder.getIdICom();
-	        if (parentIComId == null) {
-	            throw new RuntimeException("Folder gốc chưa có idICom: " + folderId);
-	        }
+		try {
+			String folderId = folder.getFolderId();
+			Integer parentIComId = folder.getIdICom();
+			if (parentIComId == null) {
+				throw new RuntimeException("Folder gốc chưa có idICom: " + folderId);
+			}
 
-	        int year = LocalDate.now().getYear();
-	        String folderCodeYear = folderId + "_" + year;
-	        int baseLevel = folder.getFolderLevel();
+			LocalDate now = LocalDate.now(); // ngày hiện tại
+			LocalDate nextMonthDate = now.plusMonths(1); // cộng thêm 1 tháng
 
-	        // --- kiểm tra/tạo folder năm ---
-	        SubFolderDTO folderYear = dao.getSubFolder(con, folderCodeYear);
-	        if (folderYear == null) {
-	            Integer idFolderICom = createFolderAPI(parentIComId, String.valueOf(year));
-	            if (idFolderICom == null) {
-	                throw new RuntimeException("Lỗi call API tạo folder năm cho folder: " + folderId);
-	            }
+			int year = nextMonthDate.getYear();
+			String folderCodeYear = folderId + "_" + year;
+			int baseLevel = folder.getFolderLevel();
 
-	            folderYear = new SubFolderDTO();
-	            folderYear.setFolderId(folderCodeYear);
-	            folderYear.setpFolderId(folderId);
-	            folderYear.setFolderName(String.valueOf(year));
-	            folderYear.setFolderLevel(baseLevel + 1);
-	            folderYear.setIdICom(idFolderICom);
+			// --- kiểm tra/tạo folder năm ---
+			SubFolderDTO folderYear = dao.getSubFolder(con, folderCodeYear);
+			if (folderYear == null) {
+				Integer idFolderICom = createFolderAPI(parentIComId, String.valueOf(year));
+				if (idFolderICom == null) {
+					throw new RuntimeException("Lỗi call API tạo folder năm cho folder: " + folderId);
+				}
 
-	            dao.insertSubFolder(con, folderYear);
-	        }
+				folderYear = new SubFolderDTO();
+				folderYear.setFolderId(folderCodeYear);
+				folderYear.setpFolderId(folderId);
+				folderYear.setFolderName(String.valueOf(year));
+				folderYear.setFolderLevel(baseLevel + 1);
+				folderYear.setIdICom(idFolderICom);
 
-	        // --- kiểm tra/tạo 12 folder tháng ---
-	        for (int month = 1; month <= 12; month++) {
-	            String monthName = String.format("%02d", month);
-	            String folderCodeMonth = folderCodeYear + "_" + monthName;
+				dao.insertSubFolder(con, folderYear);
+			}
+			int month = nextMonthDate.getMonthValue();
+			String monthName = String.format("%02d", month);
+			String folderCodeMonth = folderCodeYear + "_" + monthName;
 
-	            SubFolderDTO folderMonth = dao.getSubFolder(con, folderCodeMonth);
-	            if (folderMonth == null) {
-	                if (folderYear.getIdICom() == null) {
-	                    throw new RuntimeException("Folder năm chưa có idICom: " + folderCodeYear);
-	                }
+			SubFolderDTO folderMonth = dao.getSubFolder(con, folderCodeMonth);
+			if (folderMonth == null) {
+				if (folderYear.getIdICom() == null) {
+					throw new RuntimeException("Folder năm chưa có idICom: " + folderCodeYear);
+				}
 
-	                Integer idFolderICom = createFolderAPI(folderYear.getIdICom(), monthName);
-	                if (idFolderICom == null) {
-	                    throw new RuntimeException("Lỗi call API tạo folder tháng cho folder: " + folderCodeYear);
-	                }
+				Integer idFolderICom = createFolderAPI(folderYear.getIdICom(), monthName);
+				if (idFolderICom == null) {
+					throw new RuntimeException("Lỗi call API tạo folder tháng cho folder: " + folderCodeYear);
+				}
 
-	                folderMonth = new SubFolderDTO();
-	                folderMonth.setFolderId(folderCodeMonth);
-	                folderMonth.setpFolderId(folderYear.getFolderId());
-	                folderMonth.setFolderName(monthName);
-	                folderMonth.setFolderLevel(folderYear.getFolderLevel() + 1);
-	                folderMonth.setIdICom(idFolderICom);
+				folderMonth = new SubFolderDTO();
+				folderMonth.setFolderId(folderCodeMonth);
+				folderMonth.setpFolderId(folderYear.getFolderId());
+				folderMonth.setFolderName(monthName);
+				folderMonth.setFolderLevel(folderYear.getFolderLevel() + 1);
+				folderMonth.setIdICom(idFolderICom);
 
-	                dao.insertSubFolder(con, folderMonth);
-	            }
-	        }
+				dao.insertSubFolder(con, folderMonth);
+			}
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        throw e; 
-	    }
+			// --- kiểm tra/tạo 12 folder tháng ---
+			/*
+			 * for (int month = 1; month <= 12; month++) { String monthName =
+			 * String.format("%02d", month); String folderCodeMonth = folderCodeYear + "_" +
+			 * monthName;
+			 * 
+			 * SubFolderDTO folderMonth = dao.getSubFolder(con, folderCodeMonth); if
+			 * (folderMonth == null) { if (folderYear.getIdICom() == null) { throw new
+			 * RuntimeException("Folder năm chưa có idICom: " + folderCodeYear); }
+			 * 
+			 * Integer idFolderICom = createFolderAPI(folderYear.getIdICom(), monthName); if
+			 * (idFolderICom == null) { throw new
+			 * RuntimeException("Lỗi call API tạo folder tháng cho folder: " +
+			 * folderCodeYear); }
+			 * 
+			 * folderMonth = new SubFolderDTO(); folderMonth.setFolderId(folderCodeMonth);
+			 * folderMonth.setpFolderId(folderYear.getFolderId());
+			 * folderMonth.setFolderName(monthName);
+			 * folderMonth.setFolderLevel(folderYear.getFolderLevel() + 1);
+			 * folderMonth.setIdICom(idFolderICom);
+			 * 
+			 * dao.insertSubFolder(con, folderMonth); }
+			 * 
+			 * }
+			 */
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
-
 
 	public Integer createFolderAPI(Integer parent_id, String folderName) {
 		Integer idFolderICom = null;
