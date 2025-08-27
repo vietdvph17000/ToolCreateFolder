@@ -89,8 +89,7 @@ public class FolderTCMDao {
 	    		+ "WHERE CONNECT_BY_ISLEAF = 1  and ID_ICOMM IS NOT NULL\r\n"
 	    		+ "START WITH FOLDER_ID = 'ROOT'\r\n"
 	    		+ "CONNECT BY PRIOR FOLDER_ID = P_FOLDER_ID\r\n"
-	    		+ "ORDER BY FOLDER_LEVEL ASC "
-	    		+ "FETCH FIRST 2 ROWS ONLY";
+	    		+ "ORDER BY FOLDER_LEVEL ASC ";
 
 	    try (PreparedStatement pstm = conn.prepareStatement(sql);
 	         ResultSet rs = pstm.executeQuery()) {
