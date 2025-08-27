@@ -13,8 +13,105 @@ import java.util.logging.Logger;
 import dto.FolderDTO;
 import dto.JobParameterDTO;
 import dto.StorageDTO;
+import dto.SubFolderDTO;
 
 public class FolderTCMDao {
+	
+	public Boolean checkFolderExit(Connection conn, String subFolderId) throws Exception {
+	    String sql = "SELECT COUNT(*) FROM tcm_sub_folder WHERE SUB_FOLDER_ID = ? AND ID_ICOM IS NULL";
+	    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+	        ps.setString(1, subFolderId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                int count = rs.getInt(1);
+	                return count > 0;
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        throw e; // ném ra ngoài cho dễ debug
+	    }
+	    return false;
+	}
+	public SubFolderDTO getSubFolder(Connection conn, String subFolderId) throws Exception {
+	    String sql = "SELECT SUB_FOLDER_ID,P_SUB_FOLDER_ID,ID_ICOM,FOLDER_LEVEL,FOLDER_NAME FROM tcm_sub_folder WHERE SUB_FOLDER_ID = ?";
+	    SubFolderDTO folder = null;
+	    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+	        ps.setString(1, subFolderId);
+	        try (ResultSet rs = ps.executeQuery()) {
+	        	while (rs.next()) {
+	        		folder = new SubFolderDTO();
+		            folder.setFolderId(rs.getString("SUB_FOLDER_ID"));
+		            folder.setpFolderId(rs.getString("P_SUB_FOLDER_ID"));
+		            folder.setFolderLevel(rs.getInt("FOLDER_LEVEL"));
+		            folder.setIdICom(rs.getInt("ID_ICOM"));
+		            folder.setFolderName(rs.getString("FOLDER_NAME"));
+		        }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        throw e;
+	    }
+	    return folder;
+	}
+	
+	public void insertSubFolder(Connection conn, SubFolderDTO folder) throws Exception{
+	    String insertQuery = "INSERT INTO TCM_SUB_FOLDER (SUB_FOLDER_ID, P_SUB_FOLDER_ID, ID_ICOM, FOLDER_LEVEL, FOLDER_NAME, CREATE_TIME) " +
+	                         "VALUES (?, ?, ?, ?, ?, sysdate)";
+
+
+
+	    try (PreparedStatement insertStmt = conn.prepareStatement(insertQuery)) {
+	        insertStmt.setString(1, folder.getFolderId());
+	        insertStmt.setString(2, folder.getpFolderId());
+	        insertStmt.setInt(3, folder.getIdICom());
+	        insertStmt.setInt(4, folder.getFolderLevel());
+	        insertStmt.setString(5, folder.getFolderName());
+	        insertStmt.executeUpdate();
+
+	        System.out.println("Insert folder thành công: " + folder.getFolderId());
+	    } catch (Exception e) {
+	        System.err.println("Lỗi khi insert folder: " + folder.getFolderId());
+	        e.printStackTrace();
+	    }
+	
+	}
+
+	
+	
+	public List<FolderDTO> getListFolderLast(Connection conn) throws Exception {
+	    List<FolderDTO> folderList = new ArrayList<>();
+	    String sql = "SELECT FOLDER_ID,\r\n"
+	    		+ "       P_FOLDER_ID,\r\n"
+	    		+ "        FOLDER_LEVEL,\r\n"
+	    		+ "       ID_ICOMM\r\n"
+	    		+ "FROM TCM_FOLDER\r\n"
+	    		+ "WHERE CONNECT_BY_ISLEAF = 1  and ID_ICOMM IS NOT NULL\r\n"
+	    		+ "START WITH FOLDER_ID = 'ROOT'\r\n"
+	    		+ "CONNECT BY PRIOR FOLDER_ID = P_FOLDER_ID\r\n"
+	    		+ "ORDER BY FOLDER_LEVEL ASC "
+	    		+ "FETCH FIRST 2 ROWS ONLY";
+
+	    try (PreparedStatement pstm = conn.prepareStatement(sql);
+	         ResultSet rs = pstm.executeQuery()) {
+
+	        while (rs.next()) {
+	        	FolderDTO folder = new FolderDTO();
+	            folder.setFolderId(rs.getString("FOLDER_ID"));
+	            folder.setpFolderId(rs.getString("P_FOLDER_ID"));
+	            folder.setFolderLevel(rs.getInt("FOLDER_LEVEL"));
+	            folder.setIdICom(rs.getInt("ID_ICOMM"));
+	            folderList.add(folder);
+	        }
+
+	    } catch (SQLException ex) {
+	        Logger.getLogger(FolderTCMDao.class.getName()).log(Level.SEVERE, "Lỗi SQL khi getListFolder", ex);
+	        throw ex; // ném lỗi ra ngoài cho service xử lý
+	    }
+
+	    Logger.getLogger(FolderTCMDao.class.getName()).info("getList==> " + sql);
+	    return folderList;
+	}
 	
 	public List<FolderDTO> getListFolder(Connection conn) throws Exception {
 	    List<FolderDTO> folderList = new ArrayList<>();

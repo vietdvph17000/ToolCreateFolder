@@ -7,6 +7,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import job.JobCreateFolderIComAPI;
+import job.JobCreateSubFolderIComAPI;
 import job.TCMJobCreateFolder;
 import job.TCMJobCreateFolderPath;
 
@@ -36,6 +37,7 @@ public class CommonServletContextListener implements ServletContextListener {
         timer.addNotificationListener(lsnr, null, null);
 //        TCMJobCreateFolder.scheduleTask(timer);
 //        TCMJobCreateFolderPath.scheduleTask(timer);
-        JobCreateFolderIComAPI.scheduleTask(timer);
+//        JobCreateFolderIComAPI.scheduleTask(timer);
+        JobCreateSubFolderIComAPI.scheduleTask(timer);
     }
 }
