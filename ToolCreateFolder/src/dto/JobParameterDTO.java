@@ -7,7 +7,7 @@ public class JobParameterDTO {
 	private String param_code;
 	private String param_name;
 	private String status;
-	private int seq_no;
+	private Integer seq_no;
 	private int create_by;
 	private Timestamp create_time;
 	private int update_by;
@@ -43,10 +43,10 @@ public class JobParameterDTO {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-	public int getSeq_no() {
+	public Integer getSeq_no() {
 		return seq_no;
 	}
-	public void setSeq_no(int seq_no) {
+	public void setSeq_no(Integer seq_no) {
 		this.seq_no = seq_no;
 	}
 	public int getCreate_by() {

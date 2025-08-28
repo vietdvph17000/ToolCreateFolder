@@ -53,16 +53,18 @@ public class JobCreateSubFolderIComAPI {
             mapJob.put("param_code", "JOB_CREATE_SUB_FOLDER_ICOM_API");
 
             String statusJob = "OFF";
+            Integer day = 0;
             JobParameterDTO jobParameter = dao.getJobParameter(conn, mapJob);
 
             if (jobParameter != null && jobParameter.getParam_value() != null) {
                 statusJob = jobParameter.getParam_value();
+                day = jobParameter.getSeq_no();
             }
             LOGGER.info("Trạng thái job: " + statusJob);
             LocalDateTime now = LocalDateTime.now();
             
-            //chi chay ngay 25 cua thang
-            if ("ON".equalsIgnoreCase(statusJob) && now.getDayOfMonth() == 27) {
+            //chi chay ngay 27 cua thang
+            if ("ON".equalsIgnoreCase(statusJob) && now.getDayOfMonth() == day) {
                 LOGGER.info("Job CreateSubFolderICOM hoàn tất thành công.");
 				List<FolderDTO> listFolder = new ArrayList<>();
 				listFolder = dao.getListFolderLast(conn);
