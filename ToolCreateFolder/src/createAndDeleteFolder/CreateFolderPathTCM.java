@@ -130,12 +130,12 @@ public class CreateFolderPathTCM {
 			List<FolderDTO> listPathHSK_CS = new ArrayList();
 			List<FolderDTO> listPathHSK_Tinh = new ArrayList();
 			List<FolderDTO> listPathHSK_Pban = new ArrayList();
-			listPathCQTCtg = dao.getPathCQTFromCategory(conn);
-			listPathNTLCtg = dao.getPathNTLFromCategory(conn);
+//			listPathCQTCtg = dao.getPathCQTFromCategory(conn);
+//			listPathNTLCtg = dao.getPathNTLFromCategory(conn);
 			listPathPBanCtg = dao.getPathPBanFromCategory(conn);
 			listPathHSK_Pban = dao.getPathPBanFromCategoryHSK(conn);
-			listPathHSK_CS = dao.getPathCSFromCategoryHSK(conn);
-			listPathHSK_Tinh = dao.getPathTinhFromCategoryHSK(conn);
+//			listPathHSK_CS = dao.getPathCSFromCategoryHSK(conn);
+//			listPathHSK_Tinh = dao.getPathTinhFromCategoryHSK(conn);
 			for(FolderDTO folder : listPathCQTCtg) {
 				dao.insertToTCMFolderSP(folder, conn);
 			}	

@@ -196,18 +196,7 @@ public class FolderTCMDao {
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 
-		String sql = "SELECT *\r\n"
-				+ "FROM (\r\n"
-				+ "    SELECT FOLDER_ID,\r\n"
-				+ "           P_FOLDER_ID,\r\n"
-				+ "           FOLDER_LEVEL,FOLDER_NAME,\r\n"
-				+ "           ID_ICOMM\r\n"
-				+ "    FROM TCM_FOLDER\r\n"
-				+ "    START WITH FOLDER_ID = 'ROOT'\r\n"
-				+ "    CONNECT BY PRIOR FOLDER_ID = P_FOLDER_ID\r\n"
-				+ "    ORDER BY FOLDER_LEVEL\r\n"
-				+ ")\r\n"
-				+ "WHERE ROWNUM < 3";
+		String sql = "SELECT FOLDER_ID, P_FOLDER_ID, FOLDER_PATH, FOLDER_PATH_NAME, FOLDER_LEVEL, FOLDER_CLASS, STATUS FROM TCM_FOLDER_PATH WHERE STATUS = 'N'";
 		try {
 			pstm = conn.prepareCall(sql);
 //            pstm.setString(3, processID);
@@ -215,9 +204,11 @@ public class FolderTCMDao {
 			while (rs.next()) {
 				FolderDTO folder = new FolderDTO();
 				folder.setFolderId(rs.getString("FOLDER_ID"));
-				folder.setFolderName(rs.getString("FOLDER_NAME"));
+				folder.setFolderName(rs.getString("FOLDER_PATH_NAME"));
 				folder.setpFolderId(rs.getString("P_FOLDER_ID"));
-				folder.setFolderLevel(rs.getInt("FOLDER_LEVEL"));
+				folder.setFolderLevel(rs.getInt("folder_level"));
+				folder.setFolderClass(rs.getString("FOLDER_CLASS"));
+				folder.setPath(rs.getString("FOLDER_PATH"));
 				folderList.add(folder);
 			}
 			// System.out.println("sql map -------------"+sql);
@@ -369,7 +360,7 @@ public class FolderTCMDao {
 		        + "WHERE cc.IDTYPE = 'FOLDER_LEVEL02' "
 		        + "AND cc.CDVAL != 'HSK' "
 //		        + "AND cc.CDVAL = 'QLVB' "
-//		        + "AND cc2.MA_BAO IN ('85700') "
+		        + "AND cc2.MA_BAO IN ('00011') "
 //		        + "AND cc3.MA_BAO = '10100'"
 		        ;
 		try {
@@ -520,8 +511,8 @@ public class FolderTCMDao {
 				+ "JOIN TCM_DM_CQT cc2 ON cc2.ORG_LEVEL = 2 AND cc2.ORG_ACTION = 'Y' "
 //				+ "JOIN TCM_DM_CQT cc3 ON cc3.ORG_LEVEL = 3 AND cc3.MA_BAO_CHA = cc2.MA_BAO AND cc3.ORG_ACTION = 'N' "
 				+ "WHERE cc.IDTYPE = 'FOLDER_LEVEL02'"
-				+ "  AND cc.CDVAL = 'HSK'";
-//				+ "  and cc2.MA_BAO = 'KV21'";
+				+ "  AND cc.CDVAL = 'HSK'"
+				+ "  and cc2.MA_BAO = '00011'";
 		try {
 			pstm = conn.prepareCall(sql);
 //            pstm.setString(3, processID);
@@ -622,6 +613,19 @@ public class FolderTCMDao {
 	    }
 	}
 
+	public boolean isFolderExist(String folderId, Connection conn) {
+	    String sql = "SELECT COUNT(1) FROM TCM_FOLDER WHERE FOLDER_ID = ?";
+	    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+	        stmt.setString(1, folderId);
+	        ResultSet rs = stmt.executeQuery();
+	        if (rs.next()) {
+	            return rs.getInt(1) > 0;
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
 	
 	public void insertToTCMFolderSP(FolderDTO folder, Connection conn) throws Exception {
 

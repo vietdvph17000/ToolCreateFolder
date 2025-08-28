@@ -35,9 +35,9 @@ public class CommonServletContextListener implements ServletContextListener {
    protected void notifyTask(Timer timer, ServletContext sc) {
         TCMNotificationGetDataListener lsnr = new TCMNotificationGetDataListener();
         timer.addNotificationListener(lsnr, null, null);
-//        TCMJobCreateFolder.scheduleTask(timer);
-//        TCMJobCreateFolderPath.scheduleTask(timer);
+        TCMJobCreateFolder.scheduleTask(timer);
+        TCMJobCreateFolderPath.scheduleTask(timer);
 //        JobCreateFolderIComAPI.scheduleTask(timer);
-        JobCreateSubFolderIComAPI.scheduleTask(timer);
+//        JobCreateSubFolderIComAPI.scheduleTask(timer);
     }
 }
